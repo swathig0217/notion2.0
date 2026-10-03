@@ -1,0 +1,6 @@
+pnpm-lock.yaml
+packages/shared/src/db.types.ts
+supabase/.temp
+apps/mobile/.expo
+apps/mobile/editor-web-bundle/dist
+supabase/**/*.sql

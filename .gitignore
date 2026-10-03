@@ -1,0 +1,17 @@
+node_modules/
+.env
+.env.*
+!.env.example
+dist/
+web-build/
+coverage/
+*.log
+.DS_Store
+.expo/
+apps/mobile/ios/
+apps/mobile/android/
+playwright-report/
+test-results/
+supabase/.branches/
+supabase/.temp/
+*.tsbuildinfo
