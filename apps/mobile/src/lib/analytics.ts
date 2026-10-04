@@ -37,7 +37,10 @@ export type EventName =
   | 'first_run_tip_dismissed'
   | 'client_link_created'
   | 'client_link_shared'
-  | 'client_link_revoked';
+  | 'client_link_revoked'
+  | 'calendar_feed_enabled'
+  | 'webhook_created'
+  | 'webhook_test_sent';
 
 export function useTrack() {
   const me = useMe().data;

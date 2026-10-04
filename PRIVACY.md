@@ -44,6 +44,8 @@ How Notion 2.0 handles user data. This is an engineering commitment that every c
 - **Subscriptions** hold plan, status, provider ids and renewal date only, never payment details (those stay with the store or Stripe).
 - **Shared content** from the OS share sheet is held in memory until the user taps "Dump it"; it is never persisted outside the Inbox.
 - **Client links** (`share_links`): anyone with a link can read one project's title, status, due date, client name, the owner's display name, and the titles, statuses and due dates of its visible top-level tasks. Nothing else is returned (allowlist in `buildClientView`). Links are revocable instantly, counted (views and last view time, no visitor data), and deleted with the project or account. The public page is never stored in the visitor's browser cache by the app.
+- **Calendar feed** (`workspaces.calendar_token`, off by default): anyone with the URL can read titles and due dates of open tasks, active projects and sent invoices (invoice number and client name, no amounts). The user turns it on, can replace it, and can turn it off.
+- **Webhooks** send the events the user picks to the URL they enter: task title, status, due date, priority, client and project names; client name and email; invoice number, status, dates, currency and total. Never notes. Each request is HMAC-signed. The delivery log (`webhook_deliveries`, payloads included) is kept for 30 days and deleted with the account.
 - **Launch metrics** (`analytics` schema) aggregate `events` (names and counts, no content) and are not exposed through the API.
 
 ## AI

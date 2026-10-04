@@ -373,6 +373,50 @@ isOneToOne: false
       referencedColumns: ["workspace_id","id"]
     }
                   ]
+                },"webhook_deliveries": {
+                  Row: {
+                    "attempts": number,"created_at": string,"event": string,"id": string,"next_attempt_at": string,"payload": NonNullable<Json>,"response_status": number | null,"status": string,"updated_at": string,"webhook_id": string,"workspace_id": string
+                  }
+                  Insert: {
+                    "attempts"?: number,"created_at"?: string,"event": string,"id"?: string,"next_attempt_at"?: string,"payload": NonNullable<Json>,"response_status"?: number | null,"status"?: string,"updated_at"?: string,"webhook_id": string,"workspace_id": string
+                  }
+                  Update: {
+                    "attempts"?: number,"created_at"?: string,"event"?: string,"id"?: string,"next_attempt_at"?: string,"payload"?: NonNullable<Json>,"response_status"?: number | null,"status"?: string,"updated_at"?: string,"webhook_id"?: string,"workspace_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "webhook_deliveries_workspace_id_fkey"
+      columns: ["workspace_id"]
+isOneToOne: false
+      referencedRelation: "workspaces"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "webhook_deliveries_workspace_id_webhook_id_fkey"
+      columns: ["workspace_id","webhook_id"]
+isOneToOne: false
+      referencedRelation: "webhooks"
+      referencedColumns: ["workspace_id","id"]
+    }
+                  ]
+                },"webhooks": {
+                  Row: {
+                    "created_at": string,"enabled": boolean,"events": (string)[],"id": string,"secret": string,"updated_at": string,"url": string,"workspace_id": string
+                  }
+                  Insert: {
+                    "created_at"?: string,"enabled"?: boolean,"events": (string)[],"id"?: string,"secret": string,"updated_at"?: string,"url": string,"workspace_id": string
+                  }
+                  Update: {
+                    "created_at"?: string,"enabled"?: boolean,"events"?: (string)[],"id"?: string,"secret"?: string,"updated_at"?: string,"url"?: string,"workspace_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "webhooks_workspace_id_fkey"
+      columns: ["workspace_id"]
+isOneToOne: false
+      referencedRelation: "workspaces"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"workspace_members": {
                   Row: {
                     "created_at": string,"role": Database["public"]['Enums']["member_role"],"user_id": string,"workspace_id": string
@@ -394,13 +438,13 @@ isOneToOne: false
                   ]
                 },"workspaces": {
                   Row: {
-                    "created_at": string,"currency": string,"id": string,"inbound_token": string,"invoice_details": string | null,"name": string,"next_invoice_number": number,"owner_id": string,"updated_at": string
+                    "calendar_token": string | null,"created_at": string,"currency": string,"id": string,"inbound_token": string,"invoice_details": string | null,"name": string,"next_invoice_number": number,"owner_id": string,"updated_at": string
                   }
                   Insert: {
-                    "created_at"?: string,"currency"?: string,"id"?: string,"inbound_token"?: string,"invoice_details"?: string | null,"name": string,"next_invoice_number"?: number,"owner_id": string,"updated_at"?: string
+                    "calendar_token"?: string | null,"created_at"?: string,"currency"?: string,"id"?: string,"inbound_token"?: string,"invoice_details"?: string | null,"name": string,"next_invoice_number"?: number,"owner_id": string,"updated_at"?: string
                   }
                   Update: {
-                    "created_at"?: string,"currency"?: string,"id"?: string,"inbound_token"?: string,"invoice_details"?: string | null,"name"?: string,"next_invoice_number"?: number,"owner_id"?: string,"updated_at"?: string
+                    "calendar_token"?: string | null,"created_at"?: string,"currency"?: string,"id"?: string,"inbound_token"?: string,"invoice_details"?: string | null,"name"?: string,"next_invoice_number"?: number,"owner_id"?: string,"updated_at"?: string
                   }
                   Relationships: [
                     
@@ -416,6 +460,9 @@ isOneToOne: false
                            },
 "delete_my_account":
 { Args: Record<PropertyKey, never>; Returns: undefined
+                           },
+"enqueue_webhook_event":
+{ Args: { "data": Json,"event": string,"ws": string }; Returns: undefined
                            },
 "is_sample_client_name":
 { Args: { "name": string }; Returns: boolean
@@ -440,6 +487,12 @@ isOneToOne: false
                            },
 "save_invoice":
 { Args: { "p_invoice": Json,"p_items": Json,"p_time_entry_ids": (string)[] }; Returns: string
+                           },
+"send_test_webhook":
+{ Args: { "p_webhook_id": string }; Returns: undefined
+                           },
+"task_webhook_data":
+{ Args: { "t": Json }; Returns: Json
                            },
 "try_uuid":
 { Args: { "value": string }; Returns: string

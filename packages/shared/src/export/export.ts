@@ -20,6 +20,7 @@ export const EXPORT_TABLES = [
   'invoices',
   'invoice_items',
   'share_links',
+  'webhooks',
   'events',
 ] as const;
 export type ExportTable = (typeof EXPORT_TABLES)[number];
@@ -27,6 +28,8 @@ export type ExportTable = (typeof EXPORT_TABLES)[number];
 /** Tables deliberately not exported, with the reason. Deleted with the account all the same. */
 export const NOT_EXPORTED: Record<string, string> = {
   push_tokens: 'device push tokens are credentials for this app, not user content',
+  webhook_deliveries:
+    'a 30-day delivery log; every payload is derived from exported tasks, clients and invoices',
 };
 
 export const EXPORT_FORMAT_VERSION = 1;

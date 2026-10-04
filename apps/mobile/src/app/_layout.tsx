@@ -73,6 +73,12 @@ function AppStack({ signedIn, onboarded }: { signedIn: boolean; onboarded: boole
         <Stack.Screen name="invoices/new" options={{ presentation: 'modal', title: 'Invoice' }} />
         <Stack.Screen name="invoices/[id]" options={{ title: '' }} />
         <Stack.Screen name="share/[projectId]" options={{ title: 'Client view' }} />
+        <Stack.Screen name="integrations" options={{ title: 'Connections' }} />
+        <Stack.Screen
+          name="webhooks/new"
+          options={{ presentation: 'modal', title: 'Add webhook' }}
+        />
+        <Stack.Screen name="webhooks/[id]" options={{ title: 'Webhook' }} />
       </Stack.Protected>
       {/* Public, signed in or not: a client's read-only project view. */}
       <Stack.Screen name="p/[token]" options={{ headerShown: false }} />

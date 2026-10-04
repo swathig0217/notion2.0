@@ -26,6 +26,7 @@ execFileSync('npx', ['expo', 'export', '--platform', 'web', '--clear', '--output
     EXPO_PUBLIC_SUPABASE_URL: status.API_URL,
     EXPO_PUBLIC_SUPABASE_ANON_KEY: status.ANON_KEY,
     EXPO_PUBLIC_INBOUND_EMAIL_DOMAIN: 'in.notion2.test',
+    EXPO_PUBLIC_WEBHOOKS_ALLOW_INSECURE: '1',
   },
 });
 

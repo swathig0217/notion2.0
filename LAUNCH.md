@@ -16,7 +16,7 @@ What has to happen between "Phase 4 built" and "live in the stores". Items marke
 | Sentry                       | `EXPO_PUBLIC_SENTRY_DSN`                                                                                                            | **(owner)**                  |
 | RevenueCat + Stripe          | See §2. Until then leave `BILLING_MODE` empty in production (upgrades show "open soon")                                             | **(owner)**                  |
 
-Never set `AI_MOCK=1` or `BILLING_MODE=stub` in production.
+Never set `AI_MOCK=1`, `BILLING_MODE=stub` or `WEBHOOKS_ALLOW_INSECURE=1` in production. The Vault secrets also drive the `deliver-webhooks` cron job (every minute, only when something is queued).
 
 ## 2. Payments (stubbed today)
 

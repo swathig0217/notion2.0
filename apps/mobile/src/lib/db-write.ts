@@ -10,7 +10,8 @@ export type WritableTable =
   | 'events'
   | 'time_entries'
   | 'invoices'
-  | 'share_links';
+  | 'share_links'
+  | 'webhooks';
 
 /** Idempotent RPCs that may be queued like table writes (`table` = the cache they touch). */
 export type QueuedRpc = 'save_invoice';

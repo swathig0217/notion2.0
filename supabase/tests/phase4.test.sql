@@ -31,7 +31,7 @@ select set_eq(
   $$ select table_name::text from information_schema.tables where table_schema = 'public' and table_type = 'BASE TABLE' $$,
   array['profiles', 'workspaces', 'workspace_members', 'clients', 'projects', 'tasks', 'notes',
         'inbox_items', 'ai_actions', 'time_entries', 'events', 'push_tokens', 'subscriptions',
-        'invoices', 'invoice_items', 'share_links'],
+        'invoices', 'invoice_items', 'share_links', 'webhooks', 'webhook_deliveries'],
   'public tables match the export/deletion inventory');
 
 select is(public.plan_limits(), '{"free": {"active_clients": 3, "ai_actions_per_month": 30}}'::jsonb,

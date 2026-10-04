@@ -15,3 +15,5 @@ export * from './invoices/invoice.ts';
 export * from './export/export.ts';
 export * from './share/share.ts';
 export * from './client-view/client-view.ts';
+export * from './calendar/ics.ts';
+export * from './webhooks/webhooks.ts';

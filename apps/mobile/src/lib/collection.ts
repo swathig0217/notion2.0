@@ -31,6 +31,8 @@ export const keys = {
   invoiceItems: (id: string) => ['invoice-items', id] as const,
   usage: ['usage'] as const,
   shareLinks: ['share-links'] as const,
+  webhooks: ['webhooks'] as const,
+  webhookDeliveries: (id: string) => ['webhook-deliveries', id] as const,
 };
 
 /** Server-computed caches that depend on a table (refreshed after a write lands). */
@@ -52,6 +54,7 @@ const TABLE_KEYS: Record<DbWrite['table'], QueryKey[]> = {
   time_entries: [keys.time],
   invoices: [keys.invoices, ['invoice-items'], keys.time],
   share_links: [keys.shareLinks],
+  webhooks: [keys.webhooks],
 };
 
 /** Applies `fn` to a cached list (no-op when the list isn't loaded yet). */

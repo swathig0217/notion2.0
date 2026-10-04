@@ -1,6 +1,6 @@
 # PLAN.md — Notion 2.0 MVP
 
-Status: **Phases 1–5 built and approved.** Next: owner picks from §13. Open: native device checks, live eval run, hosted deploy, billing accounts.
+Status: **Phases 1–6 built; awaiting Phase 6 sign-off.** Open: native device checks, live eval run, hosted deploy, billing accounts.
 
 This file covers the architecture, the folder structure, the Phase 1 checklist, and the risks and open questions. Phases 2 to 4 are listed at a high level so Phase 1 is designed with them in mind. Each one gets a detailed checklist before it starts.
 
@@ -381,6 +381,16 @@ Decisions at kickoff (2026-10-04): build the **read-only client view** only (pay
 - [x] Project page → "Share with client" → link, share, opened count, per-task visibility toggles, live preview, turn off
 - [x] Shared logic unit-tested; Playwright: share, hide a task, open signed out, count the visit, turn off
 
-## 13. Later (post-launch)
+## 13. Phase 6 checklist: Calendar feed and webhooks
 
-- Real RevenueCat/Stripe integration, calendar sync (.ics) and Zapier/webhooks, PDF invoices, client view extras (sent updates, comments).
+Decisions at kickoff (2026-10-04): calendar feed (.ics) + outgoing webhooks; no new dependencies. Schema additions: `workspaces.calendar_token`, `webhooks`, `webhook_deliveries` (outbox), pg_cron job `deliver-webhooks`.
+
+- [x] Private calendar feed (`calendar` function, token in the URL): open top-level tasks, active projects and sent invoices with due dates, as all-day events with stable UIDs; titles only (no notes, no amounts); on / new link / off in Settings → Connections
+- [x] Webhooks (max 5): events `task.created`, `task.completed`, `client.created`, `invoice.sent`, `invoice.paid`, plus a test `ping`; DB triggers queue allowlisted payloads in an outbox
+- [x] `deliver-webhooks` (cron every minute, only when something is due): claims a batch, signs (`Notion2-Signature: t=…,v1=HMAC-SHA256`), never follows redirects, re-checks URLs (https, public hosts, DNS not private), retries 1m/5m/30m/2h then fails; prunes after 30 days
+- [x] Webhook screen: URL, events, pause, signing secret, send test, recent deliveries
+- [x] Unit tests (ics escaping/folding, feed rules, URL safety, HMAC vs Node, backoff), pgTAP (17), Playwright (calendar on/off; signed delivery verified by a local receiver)
+
+## 14. Later (post-launch)
+
+- Real RevenueCat/Stripe integration, PDF invoices, client view extras (sent updates, comments), incoming integrations (create tasks from Zapier).

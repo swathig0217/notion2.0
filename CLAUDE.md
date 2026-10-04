@@ -68,6 +68,7 @@ Before saying a task is done, run `pnpm typecheck && pnpm lint && pnpm test`. Al
 - IDs are generated on the client (`crypto.randomUUID()`) so offline creates are stable.
 - Every mutation is optimistic: update the cache with `updateList`, then enqueue the write with `useDbWrite` (serial, persisted, idempotent). Rejections refetch and toast. Multi-table writes go through an idempotent RPC queued with the `rpc` op (e.g. `save_invoice`).
 - Plan limits are enforced server-side (client-limit trigger, `overPlanLimit` in AI functions → 402 `plan_limit`); the app pre-checks and opens the paywall (`openPaywall`). Limits live in `plan_limits()` and `packages/shared/src/plans` (tested to match).
+- Webhook events are queued by DB triggers into `webhook_deliveries` (never sent from the app); payloads are allowlists. Fetching a user-supplied URL goes through `webhookUrlProblem` plus the DNS check in `deliver-webhooks`.
 - A new table must be added to `EXPORT_TABLES` (or `NOT_EXPORTED` with a reason) and to the inventory in `supabase/tests/phase4.test.sql`.
 - Styling uses NativeWind classes and theme tokens only. No hex values in components.
 - Use skeleton loaders on primary flows, not spinners. Every interactive element has an `accessibilityLabel` and supports dynamic type. Use `aria-checked`/`aria-selected`/`aria-disabled`, not `accessibilityState` (ignored on web).
@@ -84,7 +85,7 @@ Before saying a task is done, run `pnpm typecheck && pnpm lint && pnpm test`. Al
 - Rate limit per user, log tokens per action, and cap input size.
 - Prompts are versioned files in `supabase/functions/_shared/prompts/` (`<name>.v<N>.md`). Any prompt change requires `pnpm eval` to pass. Changing a prompt means a new version file, not an edit in place.
 - The AI pipeline lives in `packages/shared/src/ai` (schemas, rendering, guardrails, `runStructured`, apply planner, brief, drafts) and is pure; the Claude call is injected (`supabase/functions/_shared/claude.ts`, shared with `evals/`). Add new AI features the same way, with a deterministic fallback and an eval suite.
-- Server-to-server and public functions (`inbound-email`, `send-notifications`, `client-view`) use `serviceClient()`, which bypasses RLS: scope every query to a workspace or user explicitly. Public responses are built from an explicit field allowlist, never `select('*')`.
+- Server-to-server and public functions (`inbound-email`, `send-notifications`, `client-view`, `calendar`, `deliver-webhooks`) use `serviceClient()`, which bypasses RLS: scope every query to a workspace or user explicitly. Public responses are built from an explicit field allowlist, never `select('*')`.
 
 ## Privacy
 

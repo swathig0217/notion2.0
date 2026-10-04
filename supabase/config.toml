@@ -449,3 +449,11 @@ verify_jwt = true
 [functions.client-view]
 # Public: clients open shared project links without an account; the token is the credential.
 verify_jwt = false
+
+[functions.calendar]
+# Polled by calendar apps; the feed token is the credential.
+verify_jwt = false
+
+[functions.deliver-webhooks]
+# Called by pg_cron with CRON_SECRET; not a user endpoint.
+verify_jwt = false

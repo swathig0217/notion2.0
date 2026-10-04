@@ -9,4 +9,6 @@ export const env = {
   inboundEmailDomain: process.env.EXPO_PUBLIC_INBOUND_EMAIL_DOMAIN ?? '',
   /** Public web app origin, used for client links (`<appUrl>/p/<token>`). */
   appUrl: process.env.EXPO_PUBLIC_APP_URL ?? '',
+  /** Local dev/e2e only: accept http:// webhook URLs (the server has its own switch). */
+  webhooksAllowInsecure: process.env.EXPO_PUBLIC_WEBHOOKS_ALLOW_INSECURE === '1',
 };

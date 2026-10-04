@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Platform, Pressable, ScrollView, Share, View } from 'react-native';
+import { router } from 'expo-router';
 import { isValidTimeZone } from '@notion2/shared';
 import { Button, Checkbox, ListRow, SectionHeader, Text, TextField } from '@/components/ui';
 import { signOut } from '@/features/auth/session';
@@ -268,6 +269,19 @@ export default function Settings() {
       </View>
 
       <InvoiceSettings workspace={me.workspace} />
+
+      <SectionHeader title="Connections" />
+      <View className="gap-px bg-border">
+        <ListRow
+          title="Calendar and webhooks"
+          subtitle={
+            me.workspace.calendar_token
+              ? 'Calendar feed on'
+              : 'Due dates in your calendar, Zapier, Make'
+          }
+          onPress={() => router.push('/integrations')}
+        />
+      </View>
 
       <ExportSection workspaceId={me.workspace.id} />
 
