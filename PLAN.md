@@ -1,6 +1,6 @@
 # PLAN.md — Notion 2.0 MVP
 
-Status: **Phases 1–5 built; awaiting Phase 5 sign-off.** Open: native device checks, live eval run, hosted deploy, billing accounts (§11).
+Status: **Phases 1–5 built and approved.** Next: owner picks from §13. Open: native device checks, live eval run, hosted deploy, billing accounts.
 
 This file covers the architecture, the folder structure, the Phase 1 checklist, and the risks and open questions. Phases 2 to 4 are listed at a high level so Phase 1 is designed with them in mind. Each one gets a detailed checklist before it starts.
 
