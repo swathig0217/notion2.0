@@ -19,6 +19,7 @@ export const EXPORT_TABLES = [
   'time_entries',
   'invoices',
   'invoice_items',
+  'share_links',
   'events',
 ] as const;
 export type ExportTable = (typeof EXPORT_TABLES)[number];

@@ -7,4 +7,6 @@ export const env = {
   authGoogleEnabled: process.env.EXPO_PUBLIC_AUTH_GOOGLE === '1',
   /** Domain that receives forwarded email (Postmark inbound), e.g. in.example.com. */
   inboundEmailDomain: process.env.EXPO_PUBLIC_INBOUND_EMAIL_DOMAIN ?? '',
+  /** Public web app origin, used for client links (`<appUrl>/p/<token>`). */
+  appUrl: process.env.EXPO_PUBLIC_APP_URL ?? '',
 };

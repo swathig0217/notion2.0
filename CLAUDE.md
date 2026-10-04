@@ -84,7 +84,7 @@ Before saying a task is done, run `pnpm typecheck && pnpm lint && pnpm test`. Al
 - Rate limit per user, log tokens per action, and cap input size.
 - Prompts are versioned files in `supabase/functions/_shared/prompts/` (`<name>.v<N>.md`). Any prompt change requires `pnpm eval` to pass. Changing a prompt means a new version file, not an edit in place.
 - The AI pipeline lives in `packages/shared/src/ai` (schemas, rendering, guardrails, `runStructured`, apply planner, brief, drafts) and is pure; the Claude call is injected (`supabase/functions/_shared/claude.ts`, shared with `evals/`). Add new AI features the same way, with a deterministic fallback and an eval suite.
-- Server-to-server functions (`inbound-email`, `send-notifications`) use `serviceClient()`, which bypasses RLS: scope every query to a workspace or user explicitly.
+- Server-to-server and public functions (`inbound-email`, `send-notifications`, `client-view`) use `serviceClient()`, which bypasses RLS: scope every query to a workspace or user explicitly. Public responses are built from an explicit field allowlist, never `select('*')`.
 
 ## Privacy
 

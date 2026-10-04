@@ -23,6 +23,7 @@ import { useCreateNote, useNotes } from '@/features/notes/api';
 import { useTimeZone } from '@/features/auth/useMe';
 import { confirmDestructive } from '@/lib/confirm';
 import { TimeTotal } from '@/features/time/TimeTotal';
+import { ShareProjectSection } from '@/features/client-view/ShareProjectSection';
 
 const STATUS_OPTIONS = [
   { value: 'active', label: 'Active' },
@@ -169,6 +170,8 @@ export default function ProjectDetail() {
             ))}
           </View>
         ) : null}
+
+        <ShareProjectSection projectId={project.id} />
 
         <SectionHeader
           title="Notes"

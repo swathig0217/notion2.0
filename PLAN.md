@@ -1,6 +1,6 @@
 # PLAN.md — Notion 2.0 MVP
 
-Status: **Phases 1–4 built; awaiting Phase 4 sign-off.** Open: native device checks, live eval run, hosted deploy, billing accounts (§11).
+Status: **Phases 1–5 built; awaiting Phase 5 sign-off.** Open: native device checks, live eval run, hosted deploy, billing accounts (§11).
 
 This file covers the architecture, the folder structure, the Phase 1 checklist, and the risks and open questions. Phases 2 to 4 are listed at a high level so Phase 1 is designed with them in mind. Each one gets a detailed checklist before it starts.
 
@@ -371,6 +371,16 @@ Decisions at kickoff (2026-10-04): payments **stubbed** with real server-side li
 - [x] Landing page (`apps/landing`, static HTML, no dependencies)
 - [x] `LAUNCH.md`: store assets checklist, accounts and secrets to configure, release steps
 
-## 12. Later (post-launch)
+## 12. Phase 5 checklist: Read-only client view
 
-- Real RevenueCat/Stripe integration, calendar sync, read-only client view, Zapier/webhooks, PDF invoices.
+Decisions at kickoff (2026-10-04): build the **read-only client view** only (payments, PDF invoices, calendar/webhooks stay later); keep the working name, with the user-facing name in one constant (`apps/mobile/src/lib/brand.ts`). Schema addition: `share_links`.
+
+- [x] `share_links` (one per project, 128-bit device-generated token, hidden task ids, view count); RLS + pgTAP; in the export and deletion inventory
+- [x] Public `client-view` function (no login, token is the credential): allowlisted fields only (project title/status/due date, client name, your name, top-level task titles/status/due dates, done work from the last 30 days)
+- [x] Public page `/p/<token>` (web), never cached on the device; "This link isn't active" once turned off
+- [x] Project page → "Share with client" → link, share, opened count, per-task visibility toggles, live preview, turn off
+- [x] Shared logic unit-tested; Playwright: share, hide a task, open signed out, count the visit, turn off
+
+## 13. Later (post-launch)
+
+- Real RevenueCat/Stripe integration, calendar sync (.ics) and Zapier/webhooks, PDF invoices, client view extras (sent updates, comments).

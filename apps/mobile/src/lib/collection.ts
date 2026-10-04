@@ -30,6 +30,7 @@ export const keys = {
   invoices: ['invoices'] as const,
   invoiceItems: (id: string) => ['invoice-items', id] as const,
   usage: ['usage'] as const,
+  shareLinks: ['share-links'] as const,
 };
 
 /** Server-computed caches that depend on a table (refreshed after a write lands). */
@@ -50,6 +51,7 @@ const TABLE_KEYS: Record<DbWrite['table'], QueryKey[]> = {
   events: [],
   time_entries: [keys.time],
   invoices: [keys.invoices, ['invoice-items'], keys.time],
+  share_links: [keys.shareLinks],
 };
 
 /** Applies `fn` to a cached list (no-op when the list isn't loaded yet). */

@@ -72,7 +72,10 @@ function AppStack({ signedIn, onboarded }: { signedIn: boolean; onboarded: boole
         <Stack.Screen name="upgrade" options={{ presentation: 'modal', title: '' }} />
         <Stack.Screen name="invoices/new" options={{ presentation: 'modal', title: 'Invoice' }} />
         <Stack.Screen name="invoices/[id]" options={{ title: '' }} />
+        <Stack.Screen name="share/[projectId]" options={{ title: 'Client view' }} />
       </Stack.Protected>
+      {/* Public, signed in or not: a client's read-only project view. */}
+      <Stack.Screen name="p/[token]" options={{ headerShown: false }} />
       {/* Last, so guard redirects never land here. */}
       <Stack.Screen name="auth/callback" options={{ headerShown: false }} />
     </Stack>
@@ -115,7 +118,11 @@ export default function RootLayout() {
             persister,
             maxAge: 1000 * 60 * 60 * 24 * 7,
             // Paused writes (made offline) are persisted and replayed on next launch.
-            dehydrateOptions: { shouldDehydrateMutation: (m) => m.state.isPaused },
+            dehydrateOptions: {
+              shouldDehydrateMutation: (m) => m.state.isPaused,
+              shouldDehydrateQuery: (q) =>
+                q.state.status === 'success' && q.meta?.persist !== false,
+            },
           }}
           // Writes queued while offline (or before an app restart) resume once the cache restores.
           onSuccess={() => void queryClient.resumePausedMutations()}

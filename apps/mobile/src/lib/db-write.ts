@@ -9,7 +9,8 @@ export type WritableTable =
   | 'inbox_items'
   | 'events'
   | 'time_entries'
-  | 'invoices';
+  | 'invoices'
+  | 'share_links';
 
 /** Idempotent RPCs that may be queued like table writes (`table` = the cache they touch). */
 export type QueuedRpc = 'save_invoice';

@@ -34,7 +34,10 @@ export type EventName =
   | 'invoice_paid'
   | 'data_exported'
   | 'share_received'
-  | 'first_run_tip_dismissed';
+  | 'first_run_tip_dismissed'
+  | 'client_link_created'
+  | 'client_link_shared'
+  | 'client_link_revoked';
 
 export function useTrack() {
   const me = useMe().data;

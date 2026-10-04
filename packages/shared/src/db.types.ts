@@ -249,6 +249,31 @@ isOneToOne: false
                   Relationships: [
                     
                   ]
+                },"share_links": {
+                  Row: {
+                    "created_at": string,"hidden_task_ids": (string)[],"id": string,"last_viewed_at": string | null,"project_id": string,"token": string,"updated_at": string,"view_count": number,"workspace_id": string
+                  }
+                  Insert: {
+                    "created_at"?: string,"hidden_task_ids"?: (string)[],"id"?: string,"last_viewed_at"?: string | null,"project_id": string,"token": string,"updated_at"?: string,"view_count"?: number,"workspace_id": string
+                  }
+                  Update: {
+                    "created_at"?: string,"hidden_task_ids"?: (string)[],"id"?: string,"last_viewed_at"?: string | null,"project_id"?: string,"token"?: string,"updated_at"?: string,"view_count"?: number,"workspace_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "share_links_workspace_id_fkey"
+      columns: ["workspace_id"]
+isOneToOne: false
+      referencedRelation: "workspaces"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "share_links_workspace_id_project_id_fkey"
+      columns: ["workspace_id","project_id"]
+isOneToOne: false
+      referencedRelation: "projects"
+      referencedColumns: ["workspace_id","id"]
+    }
+                  ]
                 },"subscriptions": {
                   Row: {
                     "billing_interval": string | null,"created_at": string,"current_period_end": string | null,"plan": string,"provider": string,"provider_customer_id": string | null,"provider_subscription_id": string | null,"status": string,"updated_at": string,"workspace_id": string
@@ -403,6 +428,9 @@ isOneToOne: false
                            },
 "plan_limits":
 { Args: Record<PropertyKey, never>; Returns: Json
+                           },
+"record_share_view":
+{ Args: { "p_token": string }; Returns: undefined
                            },
 "regenerate_inbound_token":
 { Args: { "p_workspace_id": string }; Returns: string

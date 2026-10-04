@@ -12,6 +12,7 @@ import { Button, Icon, Text } from '@/components/ui';
 import { Segmented } from '@/components/Segmented';
 import { BillingError, billingErrorMessage, useChangePlan, useUsage } from '@/features/billing/api';
 import { useTrack } from '@/lib/analytics';
+import { APP_NAME } from '@/lib/brand';
 import { haptics } from '@/lib/haptics';
 import { toast } from '@/lib/toast';
 
@@ -65,7 +66,7 @@ export default function Upgrade() {
   return (
     <ScrollView className="flex-1 bg-bg" contentContainerClassName="gap-6 p-4 pb-16">
       <View className="gap-2">
-        <Text variant="title">Notion 2.0 Pro</Text>
+        <Text variant="title">{APP_NAME} Pro</Text>
         {reason && reason in REASONS ? (
           <Text testID="paywall-reason" className="text-muted">
             {REASONS[reason]}

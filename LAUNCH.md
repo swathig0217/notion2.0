@@ -12,6 +12,7 @@ What has to happen between "Phase 4 built" and "live in the stores". Items marke
 | Cron for notifications       | Vault secrets `functions_url` and `cron_secret` (= `CRON_SECRET`), see the Phase 3 migration                                        | **(owner)**                  |
 | Expo / EAS                   | `extra.eas.projectId` in `app.json`; `eas.json` (needed by the share extension too)                                                 | **(owner)**                  |
 | Apple Developer, Google Play | Bundle ids, signing, Sign in with Apple, Google OAuth client ids                                                                    | **(owner)**                  |
+| Web app URL                  | `EXPO_PUBLIC_APP_URL` (client links `/p/<token>` from phones; web uses its own origin)                                              | **(owner)**                  |
 | Sentry                       | `EXPO_PUBLIC_SENTRY_DSN`                                                                                                            | **(owner)**                  |
 | RevenueCat + Stripe          | See §2. Until then leave `BILLING_MODE` empty in production (upgrades show "open soon")                                             | **(owner)**                  |
 
