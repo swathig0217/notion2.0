@@ -1,7 +1,7 @@
 import { useCallback } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { InboxItemInsert, type Tables } from '@notion2/shared';
-import { keys, updateList, useDbWrite } from '@/lib/collection';
+import { InboxItemInsert, type InboxKind, type Tables } from '@notion2/shared';
+import { keys, updateList, useDbWrite, useDbWriteAsync } from '@/lib/collection';
 import { newId } from '@/lib/ids';
 import { supabase } from '@/lib/supabase';
 import { useTrack } from '@/lib/analytics';
@@ -24,27 +24,30 @@ export function useInbox() {
   });
 }
 
-/** Saves a dump to the inbox. In Phase 1 there is no AI processing yet. */
+/**
+ * Saves a dump to the inbox (optimistic, works offline). Resolves with the row once it
+ * is on the server, so it can be sent to the AI.
+ */
 export function useCaptureText() {
   const qc = useQueryClient();
-  const write = useDbWrite();
+  const write = useDbWriteAsync();
   const track = useTrack();
   const workspaceId = useWorkspaceId();
   return useCallback(
-    (text: string): InboxItem | null => {
+    (text: string, kind: InboxKind = 'text'): { row: InboxItem; saved: Promise<void> } | null => {
       if (!workspaceId) return null;
       const parsed = InboxItemInsert.parse({
         id: newId(),
         workspace_id: workspaceId,
-        kind: 'text',
+        kind,
         raw_content: text,
       });
       const now = new Date().toISOString();
       const row: InboxItem = { storage_path: null, ...parsed, created_at: now, updated_at: now };
       updateList<InboxItem>(qc, keys.inbox, (rows) => [row, ...rows]);
-      write({ op: 'insert', table: 'inbox_items', rows: [row] });
-      track('inbox_item_created', { kind: 'text', length: text.length });
-      return row;
+      const saved = write({ op: 'insert', table: 'inbox_items', rows: [row] });
+      track('inbox_item_created', { kind, length: text.length });
+      return { row, saved };
     },
     [qc, write, track, workspaceId],
   );

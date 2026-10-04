@@ -17,7 +17,9 @@
     "format": "prettier --write .",
     "test": "vitest run",
     "test:db": "supabase test db",
-    "test:e2e": "pnpm --filter mobile test:e2e"
+    "test:e2e": "pnpm --filter mobile test:e2e",
+    "functions:serve": "supabase functions serve --env-file supabase/functions/.env",
+    "eval": "pnpm --filter @notion2/evals eval"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",

@@ -24,6 +24,8 @@ jobs:
       - run: pnpm typecheck
       - run: pnpm lint
       - run: pnpm test
+      - name: Eval cases and prompts (offline)
+        run: pnpm eval --dry
 
   db-and-e2e:
     name: RLS tests and web e2e
@@ -40,6 +42,14 @@ jobs:
         run: pnpm exec supabase start -x studio,imgproxy,logflare,vector,supavisor,postgres-meta,edge-runtime,storage-api,realtime
       - name: RLS policy tests (pgTAP)
         run: pnpm test:db
+      - name: Serve edge functions (mock AI model)
+        run: |
+          cp supabase/functions/.env.example supabase/functions/.env
+          nohup pnpm exec supabase functions serve --env-file supabase/functions/.env > functions.log 2>&1 &
+          for i in $(seq 1 60); do
+            curl -sf http://127.0.0.1:54321/functions/v1/health && break
+            sleep 2
+          done
       - name: Install Playwright Chromium
         run: pnpm --filter mobile exec playwright install --with-deps chromium
       - name: Playwright e2e (web)

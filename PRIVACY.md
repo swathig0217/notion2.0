@@ -32,7 +32,18 @@ How Notion 2.0 handles user data. This is an engineering commitment that every c
 - **Account deletion** (`Settings → Delete account`) calls `public.delete_my_account()`. It deletes the auth user, and every table cascades from it: profile, workspace, and all workspace data including `ai_actions` and `events`. This is covered by RLS tests.
 - **Data export** ships in Phase 4. Notes are exportable as Markdown (`docToMarkdown`), and everything else as JSON.
 
-## AI (Phase 2+)
+## AI
 
-- User and forwarded content is treated as untrusted data. Prompts delimit it and instruct the model not to follow instructions inside it.
-- Inputs are size-capped. Usage is rate limited per user, and token counts are logged per action. Raw content is not logged outside `ai_actions`.
+What is sent to the model (Anthropic API, from our server only):
+
+- The dump being organized (or the onboarding answers).
+- Workspace context so it can link correctly: client names, client email addresses, and status; project titles; the titles and due dates of up to 40 recent open tasks. No notes, no task bodies, no other users' data.
+- Today's date and the user's timezone.
+
+Safeguards:
+
+- User and forwarded content is treated as untrusted data. It is delimited in the prompt (closing tags are escaped) and the model is told not to follow instructions inside it. Code guardrails then drop anything the input doesn't support (unknown ids, invented clients, implausible dates).
+- Nothing changes in the workspace until the user accepts a proposal. Every accepted proposal can be undone.
+- Inputs are capped at 20,000 characters, with a rate limit of 30 AI actions per workspace per hour.
+- Function logs contain metrics only: action id, attempts, token counts, guardrail codes, latency. They never contain the dump, the proposal, or names.
+- Proposals (and what was applied) are stored in `ai_actions` as the audit trail. They are deleted with the account.

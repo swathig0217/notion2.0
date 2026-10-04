@@ -30,8 +30,15 @@ export async function getMagicLink(email: string): Promise<string> {
   throw new Error(`No magic link email for ${email}`);
 }
 
-/** Signs up/in through the real UI and the emailed magic link. Ends on Today. */
-export async function signIn(page: Page, email = uniqueEmail()) {
+/**
+ * Signs up/in through the real UI and the emailed magic link. New users land on
+ * onboarding: by default it is skipped so the test starts on an empty Today.
+ */
+export async function signIn(
+  page: Page,
+  email = uniqueEmail(),
+  opts: { onboarding?: 'skip' | 'stay' } = {},
+) {
   await page.goto('/');
   await page.getByRole('button', { name: 'Get started' }).click();
   await page.getByTestId('email-input').fill(email);
@@ -39,6 +46,11 @@ export async function signIn(page: Page, email = uniqueEmail()) {
   await expect(page.getByText('Check your email')).toBeVisible();
   const link = await getMagicLink(email);
   await page.goto(link);
+  await expect(page.getByRole('heading', { name: 'What do you do?' })).toBeVisible({
+    timeout: 20_000,
+  });
+  if (opts.onboarding === 'stay') return email;
+  await page.getByRole('button', { name: 'Skip, start empty' }).click();
   await expect(page.getByRole('heading', { name: 'Today' })).toBeVisible({ timeout: 20_000 });
   return email;
 }

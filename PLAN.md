@@ -1,6 +1,6 @@
 # PLAN.md — Notion 2.0 MVP
 
-Status: **Approved 2026-10-03. Phase 1 built, awaiting Phase 1 sign-off.** See §8 for checklist status.
+Status: **Phase 1 built (device spike pending). Phase 2 built, awaiting sign-off** (§9).
 
 This file covers the architecture, the folder structure, the Phase 1 checklist, and the risks and open questions. Phases 2 to 4 are listed at a high level so Phase 1 is designed with them in mind. Each one gets a detailed checklist before it starts.
 
@@ -253,8 +253,47 @@ Each slice works end to end (UI, API/DB, tests) before the next one starts.
 - [x] Sentry wired (no PII, native only for now); `events` written for `signup_completed`, `task_completed`, `checklist_from_paste` and more
 - [x] Typecheck, lint, and tests green; phase summary written
 
-## 9. Later phases (outline only)
+## 9. Phase 2 checklist: AI core
 
-- **Phase 2, AI core:** `_shared` Anthropic client (model from env, retry once on invalid JSON, then a fallback), rate limiting, prompt files with versions, `generate-workspace` + onboarding, `process-inbox` + review sheet + `apply_ai_action`/`undo_ai_action`, voice (device STT), share-sheet intent, `evals/` with 20+ cases and `pnpm eval`.
-- **Phase 3, retention:** Weekly Brief (on demand + Monday via pg_cron), Client Update Writer, follow-up drafts, time tracking, push notifications, inbound email.
+Decisions taken at kickoff (2026-10-04): voice = keyboard dictation (no new dependency); OS share sheet deferred to Phase 3; Claude is called through the official `@anthropic-ai/sdk` (server only); live evals are run by the owner with their own key.
+
+**2.1 Shared AI core (`packages/shared/src/ai`, pure + tested)**
+
+- [x] Zod schemas: proposal (`summary`, `proposed_changes[]`, `questions[]`, `confidence`), change ops `create_client` / `create_project` / `create_task` (+ subtasks) / `create_note` / `draft_reply`, with in-proposal `ref`s so a task can point at a project proposed in the same response
+- [x] Prompt rendering: workspace context + untrusted input in delimited tags (closing tags escaped)
+- [x] Guardrails: unknown ids become `null`, invalid or absurd dates become `null`, new clients only if the name appears in the input, caps on counts and lengths
+- [x] Core runners with an injected model call: retry once on invalid output, then fall back to "one task from this text"
+- [x] Apply planner: proposal + user selection/edits → rows; deterministic starter templates per business type (the onboarding fallback)
+- [x] Mock model (`AI_MOCK=1`, server-side only) for local dev and e2e without an API key
+
+**2.2 Database**
+
+- [x] `apply_ai_action(action, rows)`: one transaction, checks membership and status, records exact `applied_changes`, marks `accepted` or `edited`, marks the inbox item processed
+- [x] `undo_ai_action(action, force)`: deletes exactly the applied rows; reports rows edited since apply unless `force`
+- [x] `reject_ai_action(action)`
+- [x] pgTAP tests for all three (including cross-workspace attempts)
+
+**2.3 Edge functions**
+
+- [x] `_shared`: Claude adapter (SDK, model from `ANTHROPIC_MODEL`, structured outputs, refusal handling, server-side fallback), auth'd Supabase client, rate limit (per workspace per hour), input cap, token logging
+- [x] Versioned prompts: `process-inbox.v1.md`, `generate-workspace.v1.md`
+- [x] `process-inbox` (text, voice transcript; clarifying-question round trip)
+- [x] `generate-workspace` (under 10s target; template fallback on timeout/error)
+
+**2.4 App**
+
+- [x] Onboarding: 3 questions → generation skeleton → reviewable starter workspace → Today
+- [x] Inbox: process a dump, proposal cards, clarifying question answer, retry
+- [x] Review sheet: per-change checkboxes, inline edit, Accept selected / Reject; Undo (toast + from the inbox history)
+- [x] Capture: Type / Speak (dictation) modes; "Dump it" processes immediately
+- [x] Events: `onboarding_completed`, `ai_proposal_accepted` / `rejected` / `undone` (counts and timings only)
+
+**2.5 Quality**
+
+- [x] `evals/` with 26 realistic cases and assertions (client matched, dates resolved, no invented entities, injection resisted); `pnpm eval` (live) and `pnpm eval --dry` (offline checks). **Live pass rate not yet measured: needs an API key (owner runs it).**
+- [x] Playwright: onboarding, dump → proposal → accept → undo (mock model)
+
+## 10. Later phases (outline only)
+
+- **Phase 3, retention:** Weekly Brief (on demand + Monday via pg_cron), Client Update Writer, follow-up drafts, time tracking, push notifications, inbound email, OS share sheet, image/screenshot capture (vision).
 - **Phase 4, launch:** RevenueCat/Stripe paywall and free-tier limits, invoicing, analytics polish, store assets, landing page, export/deletion audit, crash-free audit.

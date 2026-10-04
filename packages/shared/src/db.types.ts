@@ -292,11 +292,20 @@ isOneToOne: false
             [_ in never]: never
           }
           Functions: {
-            "delete_my_account":
+            "apply_ai_action":
+{ Args: { "p_action_id": string,"p_edited"?: boolean,"p_rows": Json }; Returns: Json
+                           },
+"delete_my_account":
 { Args: Record<PropertyKey, never>; Returns: undefined
                            },
 "is_workspace_member":
 { Args: { "ws": string }; Returns: boolean
+                           },
+"reject_ai_action":
+{ Args: { "p_action_id": string }; Returns: undefined
+                           },
+"undo_ai_action":
+{ Args: { "p_action_id": string,"p_force"?: boolean }; Returns: Json
                            }
           }
           Enums: {

@@ -1,9 +1,10 @@
 import { useEffect, useRef, useState } from 'react';
 import { View } from 'react-native';
-import { router, useLocalSearchParams } from 'expo-router';
+import { Redirect, router, useLocalSearchParams } from 'expo-router';
 import { Button, Text } from '@/components/ui';
 import { exchangeCode } from '@/features/auth/api';
 import { useSession } from '@/features/auth/session';
+import { useMe } from '@/features/auth/useMe';
 import { supabase } from '@/lib/supabase';
 
 /** Magic-link landing route. Web: supabase-js exchanges the code itself. Native: we do. */
@@ -13,15 +14,12 @@ export default function AuthCallback() {
     error_description?: string;
   }>();
   const { session } = useSession();
+  const me = useMe().data;
   const [error, setError] = useState<string | null>(error_description ?? null);
   const started = useRef(false);
 
   useEffect(() => {
-    if (session) {
-      router.replace('/');
-      return;
-    }
-    if (!code || started.current) return;
+    if (session || !code || started.current) return;
     started.current = true;
     void (async () => {
       const existing = await supabase.auth.getSession();
@@ -33,6 +31,10 @@ export default function AuthCallback() {
       }
     })();
   }, [code, session]);
+
+  // Declarative, so it works even if navigation was not ready when the session arrived.
+  // Target the screen the guards allow; navigating to a guarded route is a silent no-op.
+  if (session && me) return <Redirect href={me.profile.onboarded_at ? '/' : '/onboarding'} />;
 
   return (
     <View className="flex-1 items-center justify-center gap-4 bg-bg px-6">

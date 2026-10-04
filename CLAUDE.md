@@ -19,7 +19,7 @@ Read `PLAN.md` for the architecture and the current phase checklist. Read `DECIS
 
 ## Stack
 
-- pnpm workspaces: `apps/mobile` (Expo SDK 57 + React Native + Expo Router, TypeScript strict; routes in `src/app`), `packages/shared` (Zod schemas, parsers, pure logic; also imported by Deno edge functions), `packages/editor` (TipTap schema, Smart Paste, Markdown), `supabase/` (Postgres, RLS, Edge Functions in Deno), `evals/` (Phase 2)
+- pnpm workspaces: `apps/mobile` (Expo SDK 57 + React Native + Expo Router, TypeScript strict; routes in `src/app`), `packages/shared` (Zod schemas, parsers, pure logic; also imported by Deno edge functions), `packages/editor` (TipTap schema, Smart Paste, Markdown), `supabase/` (Postgres, RLS, Edge Functions in Deno), `evals/` (AI eval cases + runner)
 - UI: NativeWind + our own components in `apps/mobile/src/components/ui`. Light and dark mode
 - Data: TanStack Query with a persisted cache, optimistic mutations, a queue for offline writes, last-write-wins on `updated_at`
 - Editor: TipTap (web) and TenTap (TipTap in a WebView, native). One shared extension set in `packages/editor`
@@ -30,21 +30,22 @@ Read `PLAN.md` for the architecture and the current phase checklist. Read `DECIS
 
 Run from the repo root. Local Supabase needs Docker.
 
-| Command                          | What it does                                                 |
-| -------------------------------- | ------------------------------------------------------------ |
-| `pnpm install`                   | Install all workspaces                                       |
-| `pnpm dev`                       | Start Expo (press `w` for web, `i` for iOS, `a` for Android) |
-| `pnpm dev:web`                   | Start Expo web only                                          |
-| `pnpm db:start` / `pnpm db:stop` | Start or stop local Supabase (Docker)                        |
-| `pnpm db:reset`                  | Re-apply migrations and `seed.sql` locally                   |
-| `pnpm db:types`                  | Regenerate `packages/shared/src/db.types.ts`                 |
-| `pnpm typecheck`                 | `tsc --noEmit` across all workspaces                         |
-| `pnpm lint`                      | ESLint + Prettier check                                      |
-| `pnpm format`                    | Prettier write                                               |
-| `pnpm test`                      | Vitest across all workspaces                                 |
-| `pnpm test:db`                   | pgTAP RLS tests (`supabase test db`)                         |
-| `pnpm test:e2e`                  | Playwright against Expo web + local Supabase                 |
-| `pnpm eval`                      | AI eval suite, which reports the pass rate (Phase 2)         |
+| Command                          | What it does                                                                                             |
+| -------------------------------- | -------------------------------------------------------------------------------------------------------- |
+| `pnpm install`                   | Install all workspaces                                                                                   |
+| `pnpm dev`                       | Start Expo (press `w` for web, `i` for iOS, `a` for Android)                                             |
+| `pnpm dev:web`                   | Start Expo web only                                                                                      |
+| `pnpm db:start` / `pnpm db:stop` | Start or stop local Supabase (Docker)                                                                    |
+| `pnpm db:reset`                  | Re-apply migrations and `seed.sql` locally                                                               |
+| `pnpm db:types`                  | Regenerate `packages/shared/src/db.types.ts`                                                             |
+| `pnpm typecheck`                 | `tsc --noEmit` across all workspaces                                                                     |
+| `pnpm lint`                      | ESLint + Prettier check                                                                                  |
+| `pnpm format`                    | Prettier write                                                                                           |
+| `pnpm test`                      | Vitest across all workspaces                                                                             |
+| `pnpm test:db`                   | pgTAP RLS tests (`supabase test db`)                                                                     |
+| `pnpm test:e2e`                  | Playwright against Expo web + local Supabase                                                             |
+| `pnpm functions:serve`           | Serve Edge Functions locally (`supabase/functions/.env`; `AI_MOCK=1` needs no key)                       |
+| `pnpm eval`                      | Live AI evals against Claude (needs `ANTHROPIC_API_KEY`); `pnpm eval --dry` checks cases/prompts offline |
 
 Before saying a task is done, run `pnpm typecheck && pnpm lint && pnpm test`. Also run `pnpm test:db` when you touch migrations, and `pnpm test:e2e` when you touch a critical flow.
 
@@ -79,7 +80,8 @@ Before saying a task is done, run `pnpm typecheck && pnpm lint && pnpm test`. Al
 - User and forwarded content is **untrusted data**. Wrap it in delimited tags, and tell the model in the system prompt never to follow instructions inside it.
 - Retry once on invalid JSON, then fall back to "create one task from this text".
 - Rate limit per user, log tokens per action, and cap input size.
-- Prompts are versioned files in `supabase/functions/_shared/prompts/` (`<name>.v<N>.md`). Any prompt change requires `pnpm eval` to pass.
+- Prompts are versioned files in `supabase/functions/_shared/prompts/` (`<name>.v<N>.md`). Any prompt change requires `pnpm eval` to pass. Changing a prompt means a new version file, not an edit in place.
+- The AI pipeline lives in `packages/shared/src/ai` (schemas, rendering, guardrails, runner, apply planner) and is pure; the Claude call is injected (`supabase/functions/_shared/claude.ts`, shared with `evals/`). Add new AI features the same way.
 
 ## Privacy
 

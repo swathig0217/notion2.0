@@ -52,3 +52,17 @@ export function useDbWrite() {
   });
   return useCallback((write: DbWrite) => mutate(write), [mutate]);
 }
+
+/** Like `useDbWrite`, but resolves once the write reached the server (after reconnect if offline). */
+export function useDbWriteAsync() {
+  const qc = useQueryClient();
+  const { mutateAsync } = useMutation<void, Error, DbWrite>({
+    mutationKey: DB_WRITE_KEY,
+    onError: (error, write) => {
+      reportError(error, { table: write.table, op: write.op });
+      for (const key of TABLE_KEYS[write.table]) void qc.invalidateQueries({ queryKey: key });
+      toast.error("Couldn't save that change. It has been undone.");
+    },
+  });
+  return mutateAsync;
+}

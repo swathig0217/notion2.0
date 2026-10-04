@@ -1,6 +1,6 @@
 // Health check. Also proves edge functions can import the shared package
 // (Zod schemas + pure logic) used by the app: one source of truth for both.
-import { TaskInsert, parseChecklist } from '@shared/index.ts';
+import { TaskInsert, parseChecklist } from '../../../packages/shared/src/index.ts';
 
 Deno.serve(() => {
   const sharedOk = parseChecklist('- a\n- b').items.length === 2;

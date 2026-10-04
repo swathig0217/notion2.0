@@ -6,3 +6,4 @@ export * from './tasks/position.ts';
 export * from './tasks/today.ts';
 export type { Database, Json, Tables, TablesInsert, TablesUpdate } from './db.types.ts';
 export * from './paste/insertion.ts';
+export * from './ai/index.ts';

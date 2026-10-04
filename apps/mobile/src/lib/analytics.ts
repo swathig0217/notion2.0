@@ -15,7 +15,12 @@ export type EventName =
   | 'task_completed'
   | 'checklist_from_paste'
   | 'note_created'
-  | 'inbox_item_created';
+  | 'inbox_item_created'
+  | 'onboarding_completed'
+  | 'ai_proposal_accepted'
+  | 'ai_proposal_rejected'
+  | 'ai_proposal_undone'
+  | 'ai_clarification_answered';
 
 export function useTrack() {
   const me = useMe().data;
