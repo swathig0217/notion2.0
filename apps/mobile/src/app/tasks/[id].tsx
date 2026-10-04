@@ -34,6 +34,7 @@ import { useProject } from '@/features/projects/api';
 import { useTimeZone } from '@/features/auth/useMe';
 import { useTrack } from '@/lib/analytics';
 import { toast } from '@/lib/toast';
+import { TaskTimeSection } from '@/features/time/TaskTimeSection';
 
 const STATUS_OPTIONS = [
   { value: 'todo', label: 'To do' },
@@ -286,6 +287,8 @@ export default function TaskDetail() {
             </View>
           </View>
         </View>
+
+        <TaskTimeSection task={task} />
 
         <SectionHeader title="Notes" />
         <View className="mx-4 rounded-xl bg-surface px-4 py-3">

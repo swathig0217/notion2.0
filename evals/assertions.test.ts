@@ -57,3 +57,51 @@ describe('eval assertions', () => {
     ]);
   });
 });
+
+describe('draft and brief assertions', () => {
+  it('checks drafts', async () => {
+    const { checkDraft } = await import('./assertions.ts');
+    const d = {
+      subject: 'Update',
+      body: 'Hi Sam,\n\nHomepage is done and FAQ is next.\n\nBest,\nJordan',
+    };
+    expect(
+      checkDraft(d, {
+        greets: 'Sam',
+        signs: 'Jordan',
+        mentions_all: ['faq'],
+        max_words: 50,
+        no_amounts: true,
+      }),
+    ).toEqual([]);
+    expect(checkDraft({ ...d, body: d.body + ' That is $500.' }, { no_amounts: true })).toEqual([
+      'invented a money amount',
+    ]);
+    expect(checkDraft({ ...d, body: 'Hi, see you Oct 20.' }, { no_dates_except: [] })).toEqual([
+      'mentions dates not in context: Oct 20',
+    ]);
+  });
+  it('checks briefs', async () => {
+    const { checkBrief } = await import('./assertions.ts');
+    const b = {
+      headline: 'Calm week',
+      priorities: [{ task_id: 'a' }, { task_id: 'b' }],
+      follow_ups: [{ client_id: 'x' }],
+    };
+    expect(
+      checkBrief(b, {
+        first_priority_in: ['a'],
+        includes: ['b'],
+        follow_ups_include: ['x'],
+        max_priorities: 5,
+      }),
+    ).toEqual([]);
+    expect(
+      checkBrief(b, {
+        first_priority_in: ['b'],
+        excludes: ['a'],
+        headline_must_not_contain: ['calm'],
+      }),
+    ).toHaveLength(3);
+  });
+});

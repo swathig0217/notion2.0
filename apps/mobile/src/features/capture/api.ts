@@ -64,3 +64,57 @@ export function useDismissInboxItem() {
     [qc, write],
   );
 }
+
+export interface PickedImage {
+  uri: string;
+  mimeType: string;
+  fileSize: number | null;
+}
+
+export const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
+const EXT: Record<string, string> = {
+  'image/jpeg': 'jpg',
+  'image/png': 'png',
+  'image/webp': 'webp',
+};
+
+/**
+ * Uploads a screenshot/photo to the private inbox bucket and creates an image inbox
+ * item. Needs a connection (unlike text dumps, images aren't queued offline).
+ */
+export function useCaptureImage() {
+  const qc = useQueryClient();
+  const track = useTrack();
+  const workspaceId = useWorkspaceId();
+  return useCallback(
+    async (image: PickedImage, caption: string): Promise<InboxItem> => {
+      if (!workspaceId) throw new Error('No workspace');
+      const ext = EXT[image.mimeType];
+      if (!ext) throw new Error('unsupported_type');
+      const blob = await (await fetch(image.uri)).blob();
+      if (blob.size > MAX_IMAGE_BYTES) throw new Error('too_large');
+      const id = newId();
+      const path = `${workspaceId}/${id}.${ext}`;
+      const upload = await supabase.storage
+        .from('inbox')
+        .upload(path, blob, { contentType: image.mimeType });
+      if (upload.error) throw upload.error;
+      const parsed = InboxItemInsert.parse({
+        id,
+        workspace_id: workspaceId,
+        kind: 'image',
+        raw_content: caption.trim() || 'Screenshot',
+      });
+      const { data, error } = await supabase
+        .from('inbox_items')
+        .insert({ ...parsed, storage_path: path })
+        .select('*')
+        .single();
+      if (error) throw error;
+      updateList<InboxItem>(qc, keys.inbox, (rows) => [data, ...rows]);
+      track('inbox_item_created', { kind: 'image', bytes: blob.size });
+      return data;
+    },
+    [qc, track, workspaceId],
+  );
+}

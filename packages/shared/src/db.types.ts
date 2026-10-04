@@ -144,13 +144,13 @@ isOneToOne: false
                   ]
                 },"profiles": {
                   Row: {
-                    "business_type": string | null,"created_at": string,"display_name": string | null,"id": string,"onboarded_at": string | null,"timezone": string,"tone": string | null,"updated_at": string
+                    "business_type": string | null,"created_at": string,"display_name": string | null,"id": string,"notification_prefs": NonNullable<Json>,"onboarded_at": string | null,"timezone": string,"tone": string | null,"updated_at": string
                   }
                   Insert: {
-                    "business_type"?: string | null,"created_at"?: string,"display_name"?: string | null,"id": string,"onboarded_at"?: string | null,"timezone"?: string,"tone"?: string | null,"updated_at"?: string
+                    "business_type"?: string | null,"created_at"?: string,"display_name"?: string | null,"id": string,"notification_prefs"?: NonNullable<Json>,"onboarded_at"?: string | null,"timezone"?: string,"tone"?: string | null,"updated_at"?: string
                   }
                   Update: {
-                    "business_type"?: string | null,"created_at"?: string,"display_name"?: string | null,"id"?: string,"onboarded_at"?: string | null,"timezone"?: string,"tone"?: string | null,"updated_at"?: string
+                    "business_type"?: string | null,"created_at"?: string,"display_name"?: string | null,"id"?: string,"notification_prefs"?: NonNullable<Json>,"onboarded_at"?: string | null,"timezone"?: string,"tone"?: string | null,"updated_at"?: string
                   }
                   Relationships: [
                     
@@ -179,6 +179,19 @@ isOneToOne: false
       referencedRelation: "workspaces"
       referencedColumns: ["id"]
     }
+                  ]
+                },"push_tokens": {
+                  Row: {
+                    "created_at": string,"id": string,"last_digest_on": string | null,"platform": string,"token": string,"updated_at": string,"user_id": string
+                  }
+                  Insert: {
+                    "created_at"?: string,"id"?: string,"last_digest_on"?: string | null,"platform": string,"token": string,"updated_at"?: string,"user_id": string
+                  }
+                  Update: {
+                    "created_at"?: string,"id"?: string,"last_digest_on"?: string | null,"platform"?: string,"token"?: string,"updated_at"?: string,"user_id"?: string
+                  }
+                  Relationships: [
+                    
                   ]
                 },"tasks": {
                   Row: {
@@ -275,13 +288,13 @@ isOneToOne: false
                   ]
                 },"workspaces": {
                   Row: {
-                    "created_at": string,"id": string,"name": string,"owner_id": string,"updated_at": string
+                    "created_at": string,"id": string,"inbound_token": string,"name": string,"owner_id": string,"updated_at": string
                   }
                   Insert: {
-                    "created_at"?: string,"id"?: string,"name": string,"owner_id": string,"updated_at"?: string
+                    "created_at"?: string,"id"?: string,"inbound_token"?: string,"name": string,"owner_id": string,"updated_at"?: string
                   }
                   Update: {
-                    "created_at"?: string,"id"?: string,"name"?: string,"owner_id"?: string,"updated_at"?: string
+                    "created_at"?: string,"id"?: string,"inbound_token"?: string,"name"?: string,"owner_id"?: string,"updated_at"?: string
                   }
                   Relationships: [
                     
@@ -301,8 +314,14 @@ isOneToOne: false
 "is_workspace_member":
 { Args: { "ws": string }; Returns: boolean
                            },
+"regenerate_inbound_token":
+{ Args: { "p_workspace_id": string }; Returns: string
+                           },
 "reject_ai_action":
 { Args: { "p_action_id": string }; Returns: undefined
+                           },
+"try_uuid":
+{ Args: { "value": string }; Returns: string
                            },
 "undo_ai_action":
 { Args: { "p_action_id": string,"p_force"?: boolean }; Returns: Json

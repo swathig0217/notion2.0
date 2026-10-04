@@ -32,7 +32,19 @@ export function createClaudeCall(config: ClaudeConfig): ModelCall {
       model,
       max_tokens: request.maxTokens,
       system: request.system,
-      messages: [{ role: 'user', content: request.user }],
+      messages: [
+        {
+          role: 'user',
+          // Images first, then the text that refers to them.
+          content: [
+            ...(request.images ?? []).map((image) => ({
+              type: 'image' as const,
+              source: { type: 'base64' as const, media_type: image.media_type, data: image.data },
+            })),
+            { type: 'text' as const, text: request.user },
+          ],
+        },
+      ],
       output_config: { effort: request.effort, format: betaZodOutputFormat(request.schema) },
       betas: ['server-side-fallback-2026-07-01'],
       fallbacks: 'default',

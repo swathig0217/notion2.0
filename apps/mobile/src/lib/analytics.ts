@@ -20,7 +20,11 @@ export type EventName =
   | 'ai_proposal_accepted'
   | 'ai_proposal_rejected'
   | 'ai_proposal_undone'
-  | 'ai_clarification_answered';
+  | 'ai_clarification_answered'
+  | 'client_update_sent'
+  | 'follow_up_sent'
+  | 'weekly_brief_opened'
+  | 'timer_started';
 
 export function useTrack() {
   const me = useMe().data;

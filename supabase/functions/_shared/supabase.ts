@@ -14,3 +14,15 @@ export function userClient(req: Request): Db {
     },
   );
 }
+
+/**
+ * A privileged client for server-to-server endpoints (webhooks, cron). Bypasses RLS:
+ * every query MUST be scoped to a workspace or user explicitly.
+ */
+export function serviceClient(): Db {
+  return createClient<Database>(
+    Deno.env.get('SUPABASE_URL') ?? '',
+    Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
+    { auth: { persistSession: false, autoRefreshToken: false } },
+  );
+}

@@ -50,6 +50,11 @@ export default tseslint.config(
     },
   },
   {
+    // The eval runner is a CLI: printing results is its job.
+    files: ['evals/**/*.ts'],
+    rules: { 'no-console': 'off' },
+  },
+  {
     files: ['packages/shared/**/*.ts'],
     rules: {
       // shared must stay runtime-agnostic

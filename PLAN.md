@@ -1,6 +1,6 @@
 # PLAN.md — Notion 2.0 MVP
 
-Status: **Phase 1 built (device spike pending). Phase 2 built, awaiting sign-off** (§9).
+Status: **Phases 1–3 built; awaiting Phase 3 sign-off.** Open: native device checks, live eval run, hosted deploy (§10).
 
 This file covers the architecture, the folder structure, the Phase 1 checklist, and the risks and open questions. Phases 2 to 4 are listed at a high level so Phase 1 is designed with them in mind. Each one gets a detailed checklist before it starts.
 
@@ -293,7 +293,48 @@ Decisions taken at kickoff (2026-10-04): voice = keyboard dictation (no new depe
 - [x] `evals/` with 26 realistic cases and assertions (client matched, dates resolved, no invented entities, injection resisted); `pnpm eval` (live) and `pnpm eval --dry` (offline checks). **Live pass rate not yet measured: needs an API key (owner runs it).**
 - [x] Playwright: onboarding, dump → proposal → accept → undo (mock model)
 
-## 10. Later phases (outline only)
+## 10. Phase 3 checklist: Retention
 
-- **Phase 3, retention:** Weekly Brief (on demand + Monday via pg_cron), Client Update Writer, follow-up drafts, time tracking, push notifications, inbound email, OS share sheet, image/screenshot capture (vision).
-- **Phase 4, launch:** RevenueCat/Stripe paywall and free-tier limits, invoicing, analytics polish, store assets, landing page, export/deletion audit, crash-free audit.
+Decisions at kickoff (2026-10-04): inbound email via **Postmark Inbound**; **push notifications** built now (`expo-notifications`); **`expo-image-picker`** approved (screenshot → vision); OS share sheet (`expo-share-intent`) not approved, so it moves to Phase 4. Schema additions approved: `workspaces.inbound_token`, `push_tokens`, `profiles.notification_prefs`, private Storage bucket `inbox`.
+
+**3.1 Time tracking** (reuses `time_entries`)
+
+- [x] Shared logic: one running timer at a time, minutes from start/stop, totals by task/project/client, formatting
+- [x] Task detail: start/stop timer, add manual entry (minutes, date, billable), entry list with delete + Undo
+- [x] Running-timer bar visible across the app; totals on client and project pages
+
+**3.2 Client Update Writer + follow-up drafts** (AI, `draft-message` function)
+
+- [x] Context builder: completed + open tasks, recent notes, time logged since the last update; user's saved tone (Settings)
+- [x] Prompts `client-update.v1.md`, `follow-up.v1.md` (live eval pass rate pending: owner runs `pnpm eval`); schema `{ subject, body }`; never invents dates, prices or work
+- [x] UI: "Write update" on client/project pages, "Draft follow-up" on Needs follow-up rows; editable draft → Share sheet → "Mark as sent" (sets `last_contacted_at`)
+
+**3.3 Weekly Brief** (AI, `weekly-brief` function)
+
+- [x] Deterministic brief data: overdue, stale (doing/open too long), silent clients, candidate priorities
+- [x] AI picks and explains the top 5 (ids only from candidates) with one-tap actions; deterministic fallback
+- [x] Brief tab: auto-generates on the first open each week (Monday start) and on demand
+
+**3.4 Screenshot capture** (vision)
+
+- [x] Private `inbox` bucket with per-workspace RLS; upload from capture ("Photo" mode)
+- [x] `process-inbox` sends the image to Claude (image block); size/type caps; prompt bumped to `process-inbox.v2`
+
+**3.5 Inbound email** (Postmark)
+
+- [x] Per-workspace forwarding address (`<token>@<INBOUND_EMAIL_DOMAIN>`), shown in Settings with regenerate
+- [x] `inbound-email` webhook (basic-auth secret) → inbox item (kind email) → organized automatically; flood cap
+
+**3.6 Push notifications**
+
+- [x] `push_tokens` + notification prefs in Settings (digest on/off + hour, follow-up nudges on/off)
+- [x] `send-notifications` function (service role) run hourly by pg_cron: daily Today digest at the user's local hour, stale-client nudges, Monday "brief ready"
+- [x] Planner logic unit-tested; Expo push endpoint overridable for tests. **Real-device delivery not verified (needs an EAS project id + device).**
+
+**3.7 Quality**
+
+- [x] pgTAP for new tables/policies/storage; eval suites for brief, client update and follow-up prompts; Playwright for time tracking, client update, brief, inbound email
+
+## 11. Later phases (outline only)
+
+- **Phase 4, launch:** RevenueCat/Stripe paywall and free-tier limits, invoicing, OS share sheet, analytics polish, store assets, landing page, export/deletion audit, crash-free audit.

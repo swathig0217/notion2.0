@@ -19,6 +19,7 @@ export const keys = {
   notes: ['notes'] as const,
   note: (id: string) => ['note', id] as const,
   inbox: ['inbox'] as const,
+  time: ['time-entries'] as const,
 };
 
 const TABLE_KEYS: Record<DbWrite['table'], QueryKey[]> = {
@@ -28,6 +29,7 @@ const TABLE_KEYS: Record<DbWrite['table'], QueryKey[]> = {
   notes: [keys.notes, ['note']],
   inbox_items: [keys.inbox],
   events: [],
+  time_entries: [keys.time],
 };
 
 /** Applies `fn` to a cached list (no-op when the list isn't loaded yet). */

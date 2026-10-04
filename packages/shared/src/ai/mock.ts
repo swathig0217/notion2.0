@@ -45,7 +45,7 @@ export function mockInboxProposal(text: string, context: WorkspaceContext): AiPr
   };
 }
 
-export function mockModel(produce: () => AiProposal): ModelCall {
+export function mockModel(produce: () => unknown): ModelCall {
   return async () => ({
     output: produce(),
     stopReason: 'end_turn',

@@ -48,7 +48,7 @@ export function aiErrorMessage(code: string | null): string {
   }
 }
 
-async function invoke(name: string, body: Record<string, unknown>): Promise<AiAction> {
+export async function invoke(name: string, body: Record<string, unknown>): Promise<AiAction> {
   const { data, error } = await supabase.functions.invoke<{ action: AiAction }>(name, { body });
   if (error) {
     let code = 'unknown';

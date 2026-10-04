@@ -4,6 +4,9 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Icon, type IconName } from '@/components/ui';
 import { useColors } from '@/theme/useColors';
 import { useSyncTimeZone } from '@/features/auth/useSyncTimeZone';
+import { TimerBar } from '@/features/time/TimerBar';
+import { useRunningEntry } from '@/features/time/api';
+import { useNotificationSetup } from '@/features/notifications/usePushRegistration';
 
 const TAB_ICONS: Record<string, IconName> = {
   index: 'sun',
@@ -15,11 +18,13 @@ const TAB_ICONS: Record<string, IconName> = {
 /** Floating "Dump it" capture button, reachable with one thumb from every tab. */
 function CaptureButton() {
   const insets = useSafeAreaInsets();
+  // Lift the button above the timer bar while a timer runs.
+  const timerRunning = useRunningEntry() != null;
   return (
     <View
       pointerEvents="box-none"
       className="absolute right-5"
-      style={{ bottom: insets.bottom + 68 }}
+      style={{ bottom: insets.bottom + (timerRunning ? 116 : 68) }}
     >
       <Pressable
         testID="capture-button"
@@ -34,9 +39,24 @@ function CaptureButton() {
   );
 }
 
+/** The running-timer bar sits just above the tab bar. */
+function TimerOverlay() {
+  const insets = useSafeAreaInsets();
+  return (
+    <View
+      pointerEvents="box-none"
+      className="absolute inset-x-0"
+      style={{ bottom: insets.bottom + 49 }}
+    >
+      <TimerBar />
+    </View>
+  );
+}
+
 export default function TabsLayout() {
   const colors = useColors();
   useSyncTimeZone();
+  useNotificationSetup();
   return (
     <View className="flex-1">
       <Tabs
@@ -60,6 +80,7 @@ export default function TabsLayout() {
         <Tabs.Screen name="clients" options={{ title: 'Clients' }} />
         <Tabs.Screen name="brief" options={{ title: 'Brief' }} />
       </Tabs>
+      <TimerOverlay />
       <CaptureButton />
     </View>
   );

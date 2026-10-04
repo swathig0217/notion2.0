@@ -1,7 +1,8 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { Database } from '@notion2/shared';
 
-export type WritableTable = 'clients' | 'projects' | 'tasks' | 'notes' | 'inbox_items' | 'events';
+export type WritableTable =
+  'clients' | 'projects' | 'tasks' | 'notes' | 'inbox_items' | 'events' | 'time_entries';
 
 /**
  * A serializable write. Writes are queued (and persisted while offline) as plain data so

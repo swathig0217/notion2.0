@@ -135,3 +135,106 @@ export function check(p: AiProposal, expect: Expectation, context: WorkspaceCont
 
   return failures;
 }
+
+// ---------------------------------------------------------------------------
+// Drafts (client updates and follow-ups)
+// ---------------------------------------------------------------------------
+export const DraftExpectation = z.object({
+  /** At least one of these (case-insensitive) must appear in the body. */
+  mentions_any: z.array(z.string()).optional(),
+  /** Each of these must appear. */
+  mentions_all: z.array(z.string()).optional(),
+  must_not_contain: z.array(z.string()).optional(),
+  max_words: z.number().optional(),
+  min_words: z.number().optional(),
+  greets: z.string().optional(),
+  signs: z.string().optional(),
+  no_amounts: z.boolean().optional(),
+  no_dates_except: z.array(z.string()).optional(),
+});
+export type DraftExpectation = z.infer<typeof DraftExpectation>;
+
+const MONTHS = 'jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec';
+
+export function checkDraft(
+  d: { subject: string; body: string },
+  expect: DraftExpectation,
+): string[] {
+  const failures: string[] = [];
+  const body = d.body.toLowerCase();
+  const words = d.body.split(/\s+/).filter(Boolean).length;
+  if (expect.mentions_any && !expect.mentions_any.some((s) => body.includes(s.toLowerCase()))) {
+    failures.push(`mentions none of: ${expect.mentions_any.join(', ')}`);
+  }
+  for (const s of expect.mentions_all ?? [])
+    if (!body.includes(s.toLowerCase())) failures.push(`missing "${s}"`);
+  for (const s of expect.must_not_contain ?? [])
+    if (`${d.subject} ${d.body}`.toLowerCase().includes(s.toLowerCase()))
+      failures.push(`contains forbidden "${s}"`);
+  if (expect.max_words != null && words > expect.max_words)
+    failures.push(`${words} words > ${expect.max_words}`);
+  if (expect.min_words != null && words < expect.min_words)
+    failures.push(`${words} words < ${expect.min_words}`);
+  if (expect.greets && !body.slice(0, 40).includes(expect.greets.toLowerCase()))
+    failures.push(`does not greet "${expect.greets}"`);
+  if (expect.signs && !body.slice(-60).includes(expect.signs.toLowerCase()))
+    failures.push(`not signed "${expect.signs}"`);
+  if (expect.no_amounts && /(\$|€|£)\s?\d|\d+\s?(usd|eur|gbp|dollars)/i.test(d.body))
+    failures.push('invented a money amount');
+  if (expect.no_dates_except) {
+    const allowed = expect.no_dates_except.map((s) => s.toLowerCase());
+    const found =
+      d.body.match(
+        new RegExp(
+          `\\b(\\d{4}-\\d{2}-\\d{2}|(?:${MONTHS})[a-z]*\\.? \\d{1,2}(?:st|nd|rd|th)?)\\b`,
+          'gi',
+        ),
+      ) ?? [];
+    const bad = found.filter((f) => !allowed.some((a) => f.toLowerCase().includes(a)));
+    if (bad.length) failures.push(`mentions dates not in context: ${bad.join(', ')}`);
+  }
+  return failures;
+}
+
+// ---------------------------------------------------------------------------
+// Weekly brief
+// ---------------------------------------------------------------------------
+export const BriefExpectation = z.object({
+  /** The first priority must be one of these task ids. */
+  first_priority_in: z.array(z.string()).optional(),
+  /** These task ids must appear somewhere in the priorities. */
+  includes: z.array(z.string()).optional(),
+  excludes: z.array(z.string()).optional(),
+  max_priorities: z.number().optional(),
+  min_priorities: z.number().optional(),
+  follow_ups_include: z.array(z.string()).optional(),
+  headline_must_not_contain: z.array(z.string()).optional(),
+});
+export type BriefExpectation = z.infer<typeof BriefExpectation>;
+
+export function checkBrief(
+  b: { headline: string; priorities: { task_id: string }[]; follow_ups: { client_id: string }[] },
+  expect: BriefExpectation,
+): string[] {
+  const failures: string[] = [];
+  const ids = b.priorities.map((p) => p.task_id);
+  if (expect.first_priority_in && !expect.first_priority_in.includes(ids[0] ?? '')) {
+    failures.push(
+      `first priority ${ids[0] ?? 'none'} not in [${expect.first_priority_in.join(', ')}]`,
+    );
+  }
+  for (const id of expect.includes ?? [])
+    if (!ids.includes(id)) failures.push(`missing priority ${id}`);
+  for (const id of expect.excludes ?? [])
+    if (ids.includes(id)) failures.push(`should not prioritize ${id}`);
+  if (expect.max_priorities != null && ids.length > expect.max_priorities)
+    failures.push(`${ids.length} priorities > ${expect.max_priorities}`);
+  if (expect.min_priorities != null && ids.length < expect.min_priorities)
+    failures.push(`${ids.length} priorities < ${expect.min_priorities}`);
+  for (const id of expect.follow_ups_include ?? [])
+    if (!b.follow_ups.some((f) => f.client_id === id)) failures.push(`missing follow-up ${id}`);
+  for (const s of expect.headline_must_not_contain ?? [])
+    if (b.headline.toLowerCase().includes(s.toLowerCase()))
+      failures.push(`headline contains "${s}"`);
+  return failures;
+}

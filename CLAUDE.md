@@ -69,7 +69,7 @@ Before saying a task is done, run `pnpm typecheck && pnpm lint && pnpm test`. Al
 - Every mutation is optimistic: update the cache with `updateList`, then enqueue the write with `useDbWrite` (serial, persisted, idempotent). Rejections refetch and toast.
 - Styling uses NativeWind classes and theme tokens only. No hex values in components.
 - Use skeleton loaders on primary flows, not spinners. Every interactive element has an `accessibilityLabel` and supports dynamic type. Use `aria-checked`/`aria-selected`/`aria-disabled`, not `accessibilityState` (ignored on web).
-- SQL: every table has RLS enabled and its policies go through `is_workspace_member()`. Every migration that adds a table also adds pgTAP tests.
+- SQL: every table has RLS enabled and its policies go through `is_workspace_member()` (exception: per-user tables like `push_tokens` use `user_id = auth.uid()`). Every migration that adds a table also adds pgTAP tests.
 - Tests sit next to the code (`foo.test.ts`). Bug fixes start with a failing test.
 
 ## AI rules (Phase 2+)
@@ -81,7 +81,8 @@ Before saying a task is done, run `pnpm typecheck && pnpm lint && pnpm test`. Al
 - Retry once on invalid JSON, then fall back to "create one task from this text".
 - Rate limit per user, log tokens per action, and cap input size.
 - Prompts are versioned files in `supabase/functions/_shared/prompts/` (`<name>.v<N>.md`). Any prompt change requires `pnpm eval` to pass. Changing a prompt means a new version file, not an edit in place.
-- The AI pipeline lives in `packages/shared/src/ai` (schemas, rendering, guardrails, runner, apply planner) and is pure; the Claude call is injected (`supabase/functions/_shared/claude.ts`, shared with `evals/`). Add new AI features the same way.
+- The AI pipeline lives in `packages/shared/src/ai` (schemas, rendering, guardrails, `runStructured`, apply planner, brief, drafts) and is pure; the Claude call is injected (`supabase/functions/_shared/claude.ts`, shared with `evals/`). Add new AI features the same way, with a deterministic fallback and an eval suite.
+- Server-to-server functions (`inbound-email`, `send-notifications`) use `serviceClient()`, which bypasses RLS: scope every query to a workspace or user explicitly.
 
 ## Privacy
 

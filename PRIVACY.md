@@ -21,6 +21,14 @@ How Notion 2.0 handles user data. This is an engineering commitment that every c
 | Product events                                        | `events`                                     | Success metrics (e.g. "task completed"). **Props hold counts, ids, and enums only, never content** |
 | Local cache                                           | Device storage (AsyncStorage / localStorage) | Offline use and fast startup. Cleared on sign out                                                  |
 
+## Phase 3 data
+
+- **Screenshots/photos** are stored in a private Storage bucket (`inbox`), in a per-workspace folder only workspace members can read. They're sent to the model only when organizing that item. They're deleted on account deletion.
+- **Forwarded emails** are received by Postmark and posted to our `inbound-email` function. The text (sender, subject, date, plain body, capped at 20,000 characters) becomes an inbox item. Attachments are ignored. Anyone who knows a workspace's forwarding address can send to it, so the address is secret, can be regenerated in Settings, and is rate-capped.
+- **Push notifications** go through Expo's push service. The daily digest can include the titles of up to two due tasks and a client's name (shown on the lock screen). Users can turn digests and nudges off in Settings. Device tokens are deleted with the account and when Expo reports them unregistered.
+- **Drafts and briefs** are stored in `ai_actions` like proposals (audit). Drafts are never sent by us.
+- **Time entries** are workspace data like tasks.
+
 ## Error reporting (Sentry)
 
 - `sendDefaultPii: false`.
@@ -38,6 +46,8 @@ What is sent to the model (Anthropic API, from our server only):
 
 - The dump being organized (or the onboarding answers).
 - Workspace context so it can link correctly: client names, client email addresses, and status; project titles; the titles and due dates of up to 40 recent open tasks. No notes, no task bodies, no other users' data.
+- For client updates and follow-ups: titles of that client's recent tasks, up to 5 note excerpts (500 characters each), minutes logged, the user's name and preferred tone.
+- For the Weekly Brief: titles, due dates, priorities and status of open tasks, plus client names and days since contact.
 - Today's date and the user's timezone.
 
 Safeguards:

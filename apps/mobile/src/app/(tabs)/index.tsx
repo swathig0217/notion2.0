@@ -2,6 +2,7 @@ import { useCallback, useState } from 'react';
 import { RefreshControl, ScrollView, View } from 'react-native';
 import { router } from 'expo-router';
 import {
+  Button,
   EmptyState,
   IconButton,
   ListRow,
@@ -109,6 +110,20 @@ export default function TodayScreen() {
                   subtitle={`No contact in ${daysSilent} days`}
                   onPress={() => router.push(`/clients/${client.id}`)}
                   left={<ClientAvatar name={client.name} color={client.color} />}
+                  right={
+                    <Button
+                      label="Draft"
+                      variant="ghost"
+                      icon="mail"
+                      accessibilityLabel={`Draft a follow-up to ${client.name}`}
+                      onPress={() =>
+                        router.push({
+                          pathname: '/draft',
+                          params: { kind: 'follow_up', clientId: client.id },
+                        })
+                      }
+                    />
+                  }
                 />
               ))}
             </View>

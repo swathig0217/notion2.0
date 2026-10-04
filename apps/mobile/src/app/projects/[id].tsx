@@ -3,6 +3,7 @@ import { Pressable, ScrollView, View } from 'react-native';
 import { Stack, router, useLocalSearchParams } from 'expo-router';
 import { todayInTimeZone, type ProjectStatus } from '@notion2/shared';
 import {
+  Button,
   EmptyState,
   IconButton,
   ListRow,
@@ -21,6 +22,7 @@ import { useSubtaskProgress } from '@/features/tasks/useSubtaskProgress';
 import { useCreateNote, useNotes } from '@/features/notes/api';
 import { useTimeZone } from '@/features/auth/useMe';
 import { confirmDestructive } from '@/lib/confirm';
+import { TimeTotal } from '@/features/time/TimeTotal';
 
 const STATUS_OPTIONS = [
   { value: 'active', label: 'Active' },
@@ -115,6 +117,24 @@ export default function ProjectDetail() {
             options={STATUS_OPTIONS}
             onChange={(status) => update(project.id, { status })}
           />
+          <TimeTotal projectId={project.id} />
+          {project.client_id ? (
+            <Button
+              label="Write an update"
+              icon="edit-3"
+              variant="secondary"
+              onPress={() =>
+                router.push({
+                  pathname: '/draft',
+                  params: {
+                    kind: 'client_update',
+                    clientId: project.client_id ?? '',
+                    projectId: project.id,
+                  },
+                })
+              }
+            />
+          ) : null}
         </View>
 
         <SectionHeader title={`Tasks · ${open.length} open`} />

@@ -23,6 +23,7 @@ import { useCreateNote, useNotes } from '@/features/notes/api';
 import { useTimeZone } from '@/features/auth/useMe';
 import { toast } from '@/lib/toast';
 import { confirmDestructive } from '@/lib/confirm';
+import { TimeTotal } from '@/features/time/TimeTotal';
 
 const STATUS_OPTIONS = [
   { value: 'active', label: 'Active' },
@@ -116,6 +117,19 @@ export default function ClientDetail() {
             value={client.status}
             options={STATUS_OPTIONS}
             onChange={(status) => update(client.id, { status })}
+          />
+          <TimeTotal clientId={client.id} />
+          <Button
+            testID="write-update"
+            label="Write an update"
+            icon="edit-3"
+            variant="secondary"
+            onPress={() =>
+              router.push({
+                pathname: '/draft',
+                params: { kind: 'client_update', clientId: client.id },
+              })
+            }
           />
           <View className="flex-row items-center justify-between">
             <Text variant="caption">Last contact: {lastContact}</Text>

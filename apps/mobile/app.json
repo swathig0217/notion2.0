@@ -26,9 +26,29 @@
       "output": "single",
       "favicon": "./assets/favicon.png"
     },
-    "plugins": ["expo-router", "expo-system-ui"],
+    "plugins": [
+      "expo-router",
+      "expo-system-ui",
+      [
+        "expo-notifications",
+        {
+          "color": "#5B5BD6"
+        }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Choose screenshots and photos to turn into tasks."
+        }
+      ]
+    ],
     "experiments": {
       "typedRoutes": false
+    },
+    "extra": {
+      "eas": {
+        "projectId": ""
+      }
     }
   }
 }
