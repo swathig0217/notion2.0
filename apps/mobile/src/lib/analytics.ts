@@ -24,7 +24,17 @@ export type EventName =
   | 'client_update_sent'
   | 'follow_up_sent'
   | 'weekly_brief_opened'
-  | 'timer_started';
+  | 'timer_started'
+  | 'paywall_viewed'
+  | 'upgrade_completed'
+  | 'plan_canceled'
+  | 'plan_limit_hit'
+  | 'invoice_created'
+  | 'invoice_sent'
+  | 'invoice_paid'
+  | 'data_exported'
+  | 'share_received'
+  | 'first_run_tip_dismissed';
 
 export function useTrack() {
   const me = useMe().data;

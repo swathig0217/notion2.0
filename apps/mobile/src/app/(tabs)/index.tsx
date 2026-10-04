@@ -12,6 +12,8 @@ import {
 } from '@/components/ui';
 import { ClientAvatar } from '@/features/clients/ClientAvatar';
 import { useToday } from '@/features/today/useToday';
+import { FirstRunTip } from '@/features/today/FirstRunTip';
+import { OverdueInvoices } from '@/features/invoices/OverdueInvoices';
 import { TaskRow } from '@/features/tasks/TaskRow';
 import { QuickAddTask } from '@/features/tasks/QuickAddTask';
 import { useSnoozeTask, useToggleTask } from '@/features/tasks/api';
@@ -57,6 +59,7 @@ export default function TodayScreen() {
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
         keyboardShouldPersistTaps="handled"
       >
+        <FirstRunTip />
         <View className="mt-2 overflow-hidden">
           <QuickAddTask defaults={{ due_date: today }} placeholder="Add a task for today" />
         </View>
@@ -129,6 +132,8 @@ export default function TodayScreen() {
             </View>
           </View>
         ) : null}
+
+        {!isLoading ? <OverdueInvoices today={today} /> : null}
       </ScrollView>
     </Screen>
   );

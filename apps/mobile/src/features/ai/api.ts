@@ -43,6 +43,8 @@ export function aiErrorMessage(code: string | null): string {
       return 'That’s too long to organize in one go. Try splitting it up.';
     case 'ai_not_configured':
       return 'AI isn’t set up on this server yet.';
+    case 'plan_limit':
+      return 'You’ve used this month’s AI actions on the free plan.';
     default:
       return 'Couldn’t organize that right now. Your dump is safe in the Inbox.';
   }
@@ -129,6 +131,7 @@ export function configureAiMutations(qc: QueryClient, onReady: (action: AiAction
       }),
     onSuccess: (action: AiAction) => {
       upsertAction(qc, action);
+      void qc.invalidateQueries({ queryKey: keys.usage });
       onReady(action);
     },
     onError: (error: Error) => {

@@ -60,7 +60,27 @@ export default tseslint.config(
       // shared must stay runtime-agnostic
       'no-restricted-imports': [
         'error',
-        { patterns: ['react', 'react-native', 'react-native/*', 'expo*', 'node:*'] },
+        {
+          patterns: [
+            'react',
+            'react-native',
+            'react-native/*',
+            'expo',
+            'expo-*',
+            'expo/*',
+            'node:*',
+          ],
+        },
+      ],
+    },
+  },
+  {
+    // Tests may read repo files (e.g. migrations) to check shared constants against SQL.
+    files: ['packages/shared/**/*.test.ts'],
+    rules: {
+      'no-restricted-imports': [
+        'error',
+        { patterns: ['react', 'react-native', 'react-native/*', 'expo', 'expo-*', 'expo/*'] },
       ],
     },
   },

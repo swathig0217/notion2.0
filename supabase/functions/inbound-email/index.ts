@@ -80,19 +80,25 @@ Deno.serve(async (req) => {
       timezoneUserId: workspace.owner_id,
       source: 'email',
     });
-    if (!outcome.ok) return;
-    const tokens = await userTokens(db, workspace.owner_id);
-    if (tokens.length) {
-      await sendPush(
-        db,
-        tokens.map((to) => ({
-          to,
+    // Free plan out of AI actions: the email is saved, just not organized.
+    if (!outcome.ok && outcome.code !== 'plan_limit') return;
+    const message = outcome.ok
+      ? {
           title: 'Forwarded email organized',
           body: 'A proposal is ready for you to review.',
           url: `/review/${outcome.action.id}`,
-        })),
+        }
+      : {
+          title: 'Forwarded email saved',
+          body: 'It’s in your Inbox. You’ve used this month’s AI actions.',
+          url: '/inbox',
+        };
+    const tokens = await userTokens(db, workspace.owner_id);
+    if (tokens.length)
+      await sendPush(
+        db,
+        tokens.map((to) => ({ to, ...message })),
       );
-    }
   })().catch((e) =>
     logMetrics({ fn: 'inbound-email', error: e instanceof Error ? e.name : 'error' }),
   );

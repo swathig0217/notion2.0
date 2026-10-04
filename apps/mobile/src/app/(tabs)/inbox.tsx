@@ -1,6 +1,6 @@
-import { useMemo } from 'react';
+import { useCallback, useMemo } from 'react';
 import { Pressable, ScrollView, View } from 'react-native';
-import { router } from 'expo-router';
+import { router, useFocusEffect } from 'expo-router';
 import {
   Button,
   EmptyState,
@@ -21,6 +21,7 @@ import {
   useProcessingIds,
   type AiAction,
 } from '@/features/ai/api';
+import { openPaywall } from '@/features/billing/api';
 import { useUndoFlow } from '@/features/ai/useUndoFlow';
 
 function relativeTime(iso: string) {
@@ -101,14 +102,24 @@ function InboxRow({
               {aiErrorMessage(errorCode)}
             </Text>
           ) : null}
-          <View className="flex-row">
-            <Button
-              testID="organize"
-              label={errorCode ? 'Try again' : 'Organize'}
-              icon="zap"
-              variant="secondary"
-              onPress={onOrganize}
-            />
+          <View className="flex-row gap-2">
+            {errorCode === 'plan_limit' ? (
+              <Button
+                testID="inbox-upgrade"
+                label="See Pro"
+                icon="star"
+                variant="secondary"
+                onPress={() => openPaywall('ai')}
+              />
+            ) : (
+              <Button
+                testID="organize"
+                label={errorCode ? 'Try again' : 'Organize'}
+                icon="zap"
+                variant="secondary"
+                onPress={onOrganize}
+              />
+            )}
           </View>
         </View>
       )}
@@ -124,6 +135,16 @@ export default function InboxScreen() {
   const processing = useProcessingIds();
   const errors = useProcessErrors();
   const undo = useUndoFlow();
+
+  // Forwarded emails and auto-organized proposals arrive server-side: refresh on every visit.
+  const { refetch: refetchInbox } = inbox;
+  const { refetch: refetchActions } = actions;
+  useFocusEffect(
+    useCallback(() => {
+      void refetchInbox();
+      void refetchActions();
+    }, [refetchInbox, refetchActions]),
+  );
 
   // The latest action for each inbox item decides what the row offers.
   const latestByItem = useMemo(() => {

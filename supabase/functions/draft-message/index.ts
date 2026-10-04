@@ -10,7 +10,14 @@ import {
 } from '../../../packages/shared/src/ai/index.ts';
 import { corsHeaders, error, json, logMetrics } from '../_shared/http.ts';
 import { userClient } from '../_shared/supabase.ts';
-import { isMock, loadPrompt, mockModel, modelCall, overRateLimit } from '../_shared/ai.ts';
+import {
+  isMock,
+  loadPrompt,
+  mockModel,
+  modelCall,
+  overPlanLimit,
+  overRateLimit,
+} from '../_shared/ai.ts';
 import { loadDraftContext } from '../_shared/drafts.ts';
 
 const PROMPTS = { client_update: 'client-update.v1', follow_up: 'follow-up.v1' } as const;
@@ -37,6 +44,7 @@ Deno.serve(async (req) => {
   if (!loaded) return error('not_found', 404);
   const { context, workspaceId } = loaded;
   if (await overRateLimit(db, workspaceId)) return error('rate_limited', 429);
+  if (await overPlanLimit(db, workspaceId)) return error('plan_limit', 402);
 
   const fallback = () => fallbackDraft(kind, context);
   const call = isMock() ? mockModel(fallback) : modelCall({ timeoutMs: 45_000, maxRetries: 2 });

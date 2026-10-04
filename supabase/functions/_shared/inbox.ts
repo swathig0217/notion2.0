@@ -15,6 +15,7 @@ import {
   loadWorkspaceContext,
   mockModel,
   modelCall,
+  overPlanLimit,
   overRateLimit,
 } from './ai.ts';
 import type { Db } from './supabase.ts';
@@ -31,6 +32,7 @@ export type ProcessOutcome =
       code:
         | 'input_too_large'
         | 'rate_limited'
+        | 'plan_limit'
         | 'ai_not_configured'
         | 'image_unavailable'
         | 'save_failed';
@@ -72,6 +74,8 @@ export async function processInboxItem(
     return { ok: false, code: 'input_too_large', status: 413 };
   if (await overRateLimit(db, item.workspace_id))
     return { ok: false, code: 'rate_limited', status: 429 };
+  if (await overPlanLimit(db, item.workspace_id))
+    return { ok: false, code: 'plan_limit', status: 402 };
 
   const timeZone = await loadTimeZone(db, opts.timezoneUserId);
   const context = await loadWorkspaceContext(db, item.workspace_id, timeZone);

@@ -9,6 +9,9 @@ import { inboundAddress, useRegenerateInbound } from '@/features/settings/inboun
 import { readPrefs, type NotificationPrefs } from '@/features/settings/prefs';
 import { deleteWorkspaceFiles } from '@/features/settings/delete-files';
 import { usePushRegistration } from '@/features/notifications/usePushRegistration';
+import { PlanSection } from '@/features/billing/PlanSection';
+import { InvoiceSettings } from '@/features/invoices/InvoiceSettings';
+import { ExportSection } from '@/features/settings/ExportSection';
 import { supabase } from '@/lib/supabase';
 import { confirmDestructive } from '@/lib/confirm';
 import { clearLocalData } from '@/lib/query-client';
@@ -102,6 +105,8 @@ export default function Settings() {
         <ListRow title={me.email ?? '—'} subtitle="Signed in with email" />
         <ListRow title={me.workspace.name} subtitle="Workspace" />
       </View>
+
+      <PlanSection />
 
       <SectionHeader title="Writing" />
       <View className="gap-3 px-4">
@@ -261,6 +266,10 @@ export default function Settings() {
           Used for “today”, overdue tasks, due dates and notification times.
         </Text>
       </View>
+
+      <InvoiceSettings workspace={me.workspace} />
+
+      <ExportSection workspaceId={me.workspace.id} />
 
       <View className="mt-10 gap-3 px-4">
         <Button label="Sign out" variant="secondary" onPress={() => void signOut()} />

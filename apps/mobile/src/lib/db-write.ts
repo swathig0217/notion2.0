@@ -2,7 +2,17 @@ import type { SupabaseClient } from '@supabase/supabase-js';
 import type { Database } from '@notion2/shared';
 
 export type WritableTable =
-  'clients' | 'projects' | 'tasks' | 'notes' | 'inbox_items' | 'events' | 'time_entries';
+  | 'clients'
+  | 'projects'
+  | 'tasks'
+  | 'notes'
+  | 'inbox_items'
+  | 'events'
+  | 'time_entries'
+  | 'invoices';
+
+/** Idempotent RPCs that may be queued like table writes (`table` = the cache they touch). */
+export type QueuedRpc = 'save_invoice';
 
 /**
  * A serializable write. Writes are queued (and persisted while offline) as plain data so
@@ -10,11 +20,13 @@ export type WritableTable =
  * - insert: ON CONFLICT (id) DO NOTHING, so a replayed insert is a no-op
  * - update: sets fields by id (last write wins)
  * - delete: deleting a missing row is a no-op
+ * - rpc: only functions that are idempotent by design (e.g. `save_invoice` keyed by id)
  */
 export type DbWrite =
   | { op: 'insert'; table: WritableTable; rows: Record<string, unknown>[] }
   | { op: 'update'; table: WritableTable; id: string; patch: Record<string, unknown> }
-  | { op: 'delete'; table: WritableTable; ids: string[] };
+  | { op: 'delete'; table: WritableTable; ids: string[] }
+  | { op: 'rpc'; table: WritableTable; fn: QueuedRpc; args: Record<string, unknown> };
 
 export class DbWriteError extends Error {
   constructor(
@@ -59,6 +71,9 @@ export async function executeDbWrite(client: SupabaseClient<Database>, write: Db
     case 'delete':
       if (write.ids.length === 0) return;
       ({ error } = await table.delete().in('id', write.ids));
+      break;
+    case 'rpc':
+      ({ error } = await client.rpc(write.fn, write.args as never));
       break;
   }
 

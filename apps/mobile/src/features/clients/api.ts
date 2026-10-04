@@ -49,6 +49,7 @@ export function useCreateClient() {
       const row: Client = {
         notes: null,
         last_contacted_at: null,
+        hourly_rate_cents: null,
         email: null,
         color: null,
         ...parsed,

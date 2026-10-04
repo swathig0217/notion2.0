@@ -1,6 +1,7 @@
 import { useCallback } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { StoredDraft, type DraftKind } from '@notion2/shared';
+import { keys } from '@/lib/collection';
 import { aiKeys, invoke, type AiAction } from './api';
 
 export function parseDraft(action: Pick<AiAction, 'proposed_changes'>): StoredDraft | null {
@@ -19,6 +20,7 @@ export function useDraftMessage() {
         project_id: args.projectId ?? null,
       });
       qc.setQueryData<AiAction[]>(aiKeys.actions, (rows = []) => [action, ...rows]);
+      void qc.invalidateQueries({ queryKey: keys.usage });
       return action;
     },
     [qc],

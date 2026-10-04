@@ -157,12 +157,18 @@ export function TaskTimeSection({ task }: { task: Task }) {
                 <Text variant="caption">
                   {entryDate(e.started_at)}
                   {e.billable ? '' : ' · non-billable'}
+                  {e.invoice_id ? ' · invoiced' : ''}
                 </Text>
-                <IconButton
-                  icon="x"
-                  label={`Delete ${formatDuration(e.minutes ?? 0)} entry`}
-                  onPress={() => remove(e)}
-                />
+                {/* Invoiced time is locked; delete the draft invoice to release it. */}
+                {e.invoice_id ? (
+                  <Icon name="lock" size={14} color="faint" />
+                ) : (
+                  <IconButton
+                    icon="x"
+                    label={`Delete ${formatDuration(e.minutes ?? 0)} entry`}
+                    onPress={() => remove(e)}
+                  />
+                )}
               </View>
             ))}
         </View>

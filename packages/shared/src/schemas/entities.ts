@@ -33,7 +33,10 @@ export const ClientInsert = z.object({
 });
 export const ClientUpdate = ClientInsert.omit({ id: true, workspace_id: true })
   .partial()
-  .extend({ last_contacted_at: z.iso.datetime({ offset: true }).nullable().optional() });
+  .extend({
+    last_contacted_at: z.iso.datetime({ offset: true }).nullable().optional(),
+    hourly_rate_cents: z.number().int().min(0).max(100_000_000).nullable().optional(),
+  });
 
 export const ProjectInsert = z.object({
   id: Uuid,

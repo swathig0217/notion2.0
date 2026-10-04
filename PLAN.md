@@ -1,6 +1,6 @@
 # PLAN.md — Notion 2.0 MVP
 
-Status: **Phases 1–3 built; awaiting Phase 3 sign-off.** Open: native device checks, live eval run, hosted deploy (§10).
+Status: **Phases 1–4 built; awaiting Phase 4 sign-off.** Open: native device checks, live eval run, hosted deploy, billing accounts (§11).
 
 This file covers the architecture, the folder structure, the Phase 1 checklist, and the risks and open questions. Phases 2 to 4 are listed at a high level so Phase 1 is designed with them in mind. Each one gets a detailed checklist before it starts.
 
@@ -335,6 +335,42 @@ Decisions at kickoff (2026-10-04): inbound email via **Postmark Inbound**; **pus
 
 - [x] pgTAP for new tables/policies/storage; eval suites for brief, client update and follow-up prompts; Playwright for time tracking, client update, brief, inbound email
 
-## 11. Later phases (outline only)
+## 11. Phase 4 checklist: Launch prep
 
-- **Phase 4, launch:** RevenueCat/Stripe paywall and free-tier limits, invoicing, OS share sheet, analytics polish, store assets, landing page, export/deletion audit, crash-free audit.
+Decisions at kickoff (2026-10-04): payments **stubbed** with real server-side limits (no RevenueCat/Stripe SDKs until accounts exist); free tier **3 active clients + 30 AI actions a month**, Pro **$12/mo or $96/yr**; **invoicing** from time and tasks, shared as text (web can print), no PDF dependency; **`expo-share-intent`** approved. Schema additions: `subscriptions`, `invoices`, `invoice_items`, `time_entries.invoice_id`, `clients.hourly_rate_cents`, `workspaces.currency / invoice_details / next_invoice_number`, private `analytics` schema.
+
+**4.1 Plans and limits**
+
+- [x] `subscriptions` (server-written only), `workspace_usage()`, client limit enforced by a DB trigger (samples and archived clients don't count), AI limit checked in edge functions (402 `plan_limit`)
+- [x] `billing` function: stub checkout/cancel when `BILLING_MODE=stub`; "not available yet" otherwise
+- [x] Paywall screen (monthly/yearly), plan + usage in Settings, limit hits open the paywall
+
+**4.2 Invoicing**
+
+- [x] Shared logic: unbilled time → lines grouped by task, money in integer cents, totals, text rendering, overdue
+- [x] `save_invoice` RPC (atomic, idempotent, numbers `INV-0001`), statuses draft → sent → paid / void
+- [x] Create from a client page, edit lines, share as text / print (web); invoices on the client page; overdue invoices in Today's Needs follow-up
+
+**4.3 OS share sheet** (`expo-share-intent`)
+
+- [x] Shared text, links and images open Dump it prefilled (native only; needs a development build). **Not verified on a device.**
+
+**4.4 Data export and deletion audit**
+
+- [x] Export everything as one JSON file (notes also as Markdown; images as 7-day signed links) from Settings
+- [x] Table inventory test: every public table is in the export and the deletion path
+
+**4.5 Analytics, onboarding, crash-free**
+
+- [x] New events (paywall, upgrade, limit hit, invoices, export, share); `analytics.launch_metrics` view for the success metrics
+- [x] Onboarding polish: first-run tips on Today
+- [x] Route error boundary with retry; crash-free audit notes in `LAUNCH.md` (device checks still open)
+
+**4.6 Launch assets**
+
+- [x] Landing page (`apps/landing`, static HTML, no dependencies)
+- [x] `LAUNCH.md`: store assets checklist, accounts and secrets to configure, release steps
+
+## 12. Later (post-launch)
+
+- Real RevenueCat/Stripe integration, calendar sync, read-only client view, Zapier/webhooks, PDF invoices.

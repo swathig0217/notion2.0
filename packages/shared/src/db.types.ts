@@ -50,13 +50,13 @@ isOneToOne: false
                   ]
                 },"clients": {
                   Row: {
-                    "color": string | null,"created_at": string,"email": string | null,"id": string,"last_contacted_at": string | null,"name": string,"notes": string | null,"status": Database["public"]['Enums']["client_status"],"updated_at": string,"workspace_id": string
+                    "color": string | null,"created_at": string,"email": string | null,"hourly_rate_cents": number | null,"id": string,"last_contacted_at": string | null,"name": string,"notes": string | null,"status": Database["public"]['Enums']["client_status"],"updated_at": string,"workspace_id": string
                   }
                   Insert: {
-                    "color"?: string | null,"created_at"?: string,"email"?: string | null,"id"?: string,"last_contacted_at"?: string | null,"name": string,"notes"?: string | null,"status"?: Database["public"]['Enums']["client_status"],"updated_at"?: string,"workspace_id": string
+                    "color"?: string | null,"created_at"?: string,"email"?: string | null,"hourly_rate_cents"?: number | null,"id"?: string,"last_contacted_at"?: string | null,"name": string,"notes"?: string | null,"status"?: Database["public"]['Enums']["client_status"],"updated_at"?: string,"workspace_id": string
                   }
                   Update: {
-                    "color"?: string | null,"created_at"?: string,"email"?: string | null,"id"?: string,"last_contacted_at"?: string | null,"name"?: string,"notes"?: string | null,"status"?: Database["public"]['Enums']["client_status"],"updated_at"?: string,"workspace_id"?: string
+                    "color"?: string | null,"created_at"?: string,"email"?: string | null,"hourly_rate_cents"?: number | null,"id"?: string,"last_contacted_at"?: string | null,"name"?: string,"notes"?: string | null,"status"?: Database["public"]['Enums']["client_status"],"updated_at"?: string,"workspace_id"?: string
                   }
                   Relationships: [
                     {
@@ -99,6 +99,62 @@ isOneToOne: false
                   Relationships: [
                     {
       foreignKeyName: "inbox_items_workspace_id_fkey"
+      columns: ["workspace_id"]
+isOneToOne: false
+      referencedRelation: "workspaces"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"invoice_items": {
+                  Row: {
+                    "amount_cents": number,"created_at": string,"description": string,"id": string,"invoice_id": string,"position": number,"quantity": number,"task_id": string | null,"unit_price_cents": number,"workspace_id": string
+                  }
+                  Insert: {
+                    "amount_cents": number,"created_at"?: string,"description": string,"id"?: string,"invoice_id": string,"position"?: number,"quantity": number,"task_id"?: string | null,"unit_price_cents": number,"workspace_id": string
+                  }
+                  Update: {
+                    "amount_cents"?: number,"created_at"?: string,"description"?: string,"id"?: string,"invoice_id"?: string,"position"?: number,"quantity"?: number,"task_id"?: string | null,"unit_price_cents"?: number,"workspace_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "invoice_items_workspace_id_fkey"
+      columns: ["workspace_id"]
+isOneToOne: false
+      referencedRelation: "workspaces"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "invoice_items_workspace_id_invoice_id_fkey"
+      columns: ["workspace_id","invoice_id"]
+isOneToOne: false
+      referencedRelation: "invoices"
+      referencedColumns: ["workspace_id","id"]
+    },{
+      foreignKeyName: "invoice_items_workspace_id_task_id_fkey"
+      columns: ["workspace_id","task_id"]
+isOneToOne: false
+      referencedRelation: "tasks"
+      referencedColumns: ["workspace_id","id"]
+    }
+                  ]
+                },"invoices": {
+                  Row: {
+                    "client_email": string | null,"client_id": string | null,"client_name": string,"created_at": string,"currency": string,"due_date": string | null,"id": string,"issue_date": string,"notes": string | null,"number": string,"paid_at": string | null,"sent_at": string | null,"status": Database["public"]['Enums']["invoice_status"],"total_cents": number,"updated_at": string,"workspace_id": string
+                  }
+                  Insert: {
+                    "client_email"?: string | null,"client_id"?: string | null,"client_name": string,"created_at"?: string,"currency": string,"due_date"?: string | null,"id"?: string,"issue_date": string,"notes"?: string | null,"number": string,"paid_at"?: string | null,"sent_at"?: string | null,"status"?: Database["public"]['Enums']["invoice_status"],"total_cents"?: number,"updated_at"?: string,"workspace_id": string
+                  }
+                  Update: {
+                    "client_email"?: string | null,"client_id"?: string | null,"client_name"?: string,"created_at"?: string,"currency"?: string,"due_date"?: string | null,"id"?: string,"issue_date"?: string,"notes"?: string | null,"number"?: string,"paid_at"?: string | null,"sent_at"?: string | null,"status"?: Database["public"]['Enums']["invoice_status"],"total_cents"?: number,"updated_at"?: string,"workspace_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "invoices_workspace_id_client_id_fkey"
+      columns: ["workspace_id","client_id"]
+isOneToOne: false
+      referencedRelation: "clients"
+      referencedColumns: ["workspace_id","id"]
+    },{
+      foreignKeyName: "invoices_workspace_id_fkey"
       columns: ["workspace_id"]
 isOneToOne: false
       referencedRelation: "workspaces"
@@ -193,6 +249,25 @@ isOneToOne: false
                   Relationships: [
                     
                   ]
+                },"subscriptions": {
+                  Row: {
+                    "billing_interval": string | null,"created_at": string,"current_period_end": string | null,"plan": string,"provider": string,"provider_customer_id": string | null,"provider_subscription_id": string | null,"status": string,"updated_at": string,"workspace_id": string
+                  }
+                  Insert: {
+                    "billing_interval"?: string | null,"created_at"?: string,"current_period_end"?: string | null,"plan"?: string,"provider"?: string,"provider_customer_id"?: string | null,"provider_subscription_id"?: string | null,"status"?: string,"updated_at"?: string,"workspace_id": string
+                  }
+                  Update: {
+                    "billing_interval"?: string | null,"created_at"?: string,"current_period_end"?: string | null,"plan"?: string,"provider"?: string,"provider_customer_id"?: string | null,"provider_subscription_id"?: string | null,"status"?: string,"updated_at"?: string,"workspace_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "subscriptions_workspace_id_fkey"
+      columns: ["workspace_id"]
+isOneToOne: true
+      referencedRelation: "workspaces"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"tasks": {
                   Row: {
                     "ai_action_id": string | null,"client_id": string | null,"completed_at": string | null,"created_at": string,"due_date": string | null,"id": string,"notes": string | null,"parent_task_id": string | null,"position": number,"priority": Database["public"]['Enums']["task_priority"],"project_id": string | null,"source": Database["public"]['Enums']["task_source"],"status": Database["public"]['Enums']["task_status"],"title": string,"updated_at": string,"workspace_id": string
@@ -238,13 +313,13 @@ isOneToOne: false
                   ]
                 },"time_entries": {
                   Row: {
-                    "billable": boolean,"created_at": string,"ended_at": string | null,"id": string,"minutes": number | null,"project_id": string | null,"started_at": string,"task_id": string | null,"updated_at": string,"workspace_id": string
+                    "billable": boolean,"created_at": string,"ended_at": string | null,"id": string,"invoice_id": string | null,"minutes": number | null,"project_id": string | null,"started_at": string,"task_id": string | null,"updated_at": string,"workspace_id": string
                   }
                   Insert: {
-                    "billable"?: boolean,"created_at"?: string,"ended_at"?: string | null,"id"?: string,"minutes"?: number | null,"project_id"?: string | null,"started_at": string,"task_id"?: string | null,"updated_at"?: string,"workspace_id": string
+                    "billable"?: boolean,"created_at"?: string,"ended_at"?: string | null,"id"?: string,"invoice_id"?: string | null,"minutes"?: number | null,"project_id"?: string | null,"started_at": string,"task_id"?: string | null,"updated_at"?: string,"workspace_id": string
                   }
                   Update: {
-                    "billable"?: boolean,"created_at"?: string,"ended_at"?: string | null,"id"?: string,"minutes"?: number | null,"project_id"?: string | null,"started_at"?: string,"task_id"?: string | null,"updated_at"?: string,"workspace_id"?: string
+                    "billable"?: boolean,"created_at"?: string,"ended_at"?: string | null,"id"?: string,"invoice_id"?: string | null,"minutes"?: number | null,"project_id"?: string | null,"started_at"?: string,"task_id"?: string | null,"updated_at"?: string,"workspace_id"?: string
                   }
                   Relationships: [
                     {
@@ -253,6 +328,12 @@ isOneToOne: false
 isOneToOne: false
       referencedRelation: "workspaces"
       referencedColumns: ["id"]
+    },{
+      foreignKeyName: "time_entries_workspace_id_invoice_id_fkey"
+      columns: ["workspace_id","invoice_id"]
+isOneToOne: false
+      referencedRelation: "invoices"
+      referencedColumns: ["workspace_id","id"]
     },{
       foreignKeyName: "time_entries_workspace_id_project_id_fkey"
       columns: ["workspace_id","project_id"]
@@ -288,13 +369,13 @@ isOneToOne: false
                   ]
                 },"workspaces": {
                   Row: {
-                    "created_at": string,"id": string,"inbound_token": string,"name": string,"owner_id": string,"updated_at": string
+                    "created_at": string,"currency": string,"id": string,"inbound_token": string,"invoice_details": string | null,"name": string,"next_invoice_number": number,"owner_id": string,"updated_at": string
                   }
                   Insert: {
-                    "created_at"?: string,"id"?: string,"inbound_token"?: string,"name": string,"owner_id": string,"updated_at"?: string
+                    "created_at"?: string,"currency"?: string,"id"?: string,"inbound_token"?: string,"invoice_details"?: string | null,"name": string,"next_invoice_number"?: number,"owner_id": string,"updated_at"?: string
                   }
                   Update: {
-                    "created_at"?: string,"id"?: string,"inbound_token"?: string,"name"?: string,"owner_id"?: string,"updated_at"?: string
+                    "created_at"?: string,"currency"?: string,"id"?: string,"inbound_token"?: string,"invoice_details"?: string | null,"name"?: string,"next_invoice_number"?: number,"owner_id"?: string,"updated_at"?: string
                   }
                   Relationships: [
                     
@@ -311,8 +392,17 @@ isOneToOne: false
 "delete_my_account":
 { Args: Record<PropertyKey, never>; Returns: undefined
                            },
+"is_sample_client_name":
+{ Args: { "name": string }; Returns: boolean
+                           },
 "is_workspace_member":
 { Args: { "ws": string }; Returns: boolean
+                           },
+"metered_ai_action_type":
+{ Args: { "t": string }; Returns: boolean
+                           },
+"plan_limits":
+{ Args: Record<PropertyKey, never>; Returns: Json
                            },
 "regenerate_inbound_token":
 { Args: { "p_workspace_id": string }; Returns: string
@@ -320,15 +410,24 @@ isOneToOne: false
 "reject_ai_action":
 { Args: { "p_action_id": string }; Returns: undefined
                            },
+"save_invoice":
+{ Args: { "p_invoice": Json,"p_items": Json,"p_time_entry_ids": (string)[] }; Returns: string
+                           },
 "try_uuid":
 { Args: { "value": string }; Returns: string
                            },
 "undo_ai_action":
 { Args: { "p_action_id": string,"p_force"?: boolean }; Returns: Json
+                           },
+"workspace_is_pro":
+{ Args: { "ws": string }; Returns: boolean
+                           },
+"workspace_usage":
+{ Args: { "ws": string }; Returns: Json
                            }
           }
           Enums: {
-            "ai_action_status": "proposed"|"accepted"|"rejected"|"edited"|"undone","client_status": "active"|"paused"|"archived","inbox_kind": "text"|"voice"|"email"|"image","inbox_status": "pending"|"processed"|"dismissed","member_role": "owner"|"member","project_status": "active"|"on_hold"|"done"|"archived","task_priority": "none"|"low"|"med"|"high","task_source": "manual"|"ai","task_status": "todo"|"doing"|"done"
+            "ai_action_status": "proposed"|"accepted"|"rejected"|"edited"|"undone","client_status": "active"|"paused"|"archived","inbox_kind": "text"|"voice"|"email"|"image","inbox_status": "pending"|"processed"|"dismissed","invoice_status": "draft"|"sent"|"paid"|"void","member_role": "owner"|"member","project_status": "active"|"on_hold"|"done"|"archived","task_priority": "none"|"low"|"med"|"high","task_source": "manual"|"ai","task_status": "todo"|"doing"|"done"
           }
           CompositeTypes: {
             [_ in never]: never
@@ -448,7 +547,7 @@ export const Constants = {
           }
         },"public": {
           Enums: {
-            "ai_action_status": ["proposed", "accepted", "rejected", "edited", "undone"],"client_status": ["active", "paused", "archived"],"inbox_kind": ["text", "voice", "email", "image"],"inbox_status": ["pending", "processed", "dismissed"],"member_role": ["owner", "member"],"project_status": ["active", "on_hold", "done", "archived"],"task_priority": ["none", "low", "med", "high"],"task_source": ["manual", "ai"],"task_status": ["todo", "doing", "done"]
+            "ai_action_status": ["proposed", "accepted", "rejected", "edited", "undone"],"client_status": ["active", "paused", "archived"],"inbox_kind": ["text", "voice", "email", "image"],"inbox_status": ["pending", "processed", "dismissed"],"invoice_status": ["draft", "sent", "paid", "void"],"member_role": ["owner", "member"],"project_status": ["active", "on_hold", "done", "archived"],"task_priority": ["none", "low", "med", "high"],"task_source": ["manual", "ai"],"task_status": ["todo", "doing", "done"]
           }
         }
 } as const

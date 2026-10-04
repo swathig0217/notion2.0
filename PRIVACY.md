@@ -38,7 +38,12 @@ How Notion 2.0 handles user data. This is an engineering commitment that every c
 ## Deletion and export
 
 - **Account deletion** (`Settings → Delete account`) calls `public.delete_my_account()`. It deletes the auth user, and every table cascades from it: profile, workspace, and all workspace data including `ai_actions` and `events`. This is covered by RLS tests.
-- **Data export** ships in Phase 4. Notes are exportable as Markdown (`docToMarkdown`), and everything else as JSON.
+- **Data export** (`Settings → Export my data`): one JSON file with every table the user can see (`EXPORT_TABLES` in `packages/shared/src/export`), notes also as Markdown, and uploaded images as signed links valid for 7 days. It is built on the device through RLS and never stored on our servers. Push tokens are the only table left out (device credentials, not user content).
+- **Completeness is tested:** a Vitest test fails if a migration creates a table that is neither exported nor explicitly excluded, and a pgTAP test checks the table inventory and that account deletion leaves no row with the user's workspace id in any table.
+- **Invoices** snapshot the client's name and email at creation so a sent invoice stays readable; they are workspace data and are deleted with the account.
+- **Subscriptions** hold plan, status, provider ids and renewal date only, never payment details (those stay with the store or Stripe).
+- **Shared content** from the OS share sheet is held in memory until the user taps "Dump it"; it is never persisted outside the Inbox.
+- **Launch metrics** (`analytics` schema) aggregate `events` (names and counts, no content) and are not exposed through the API.
 
 ## AI
 

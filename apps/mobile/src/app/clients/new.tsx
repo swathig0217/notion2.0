@@ -2,12 +2,15 @@ import { useState } from 'react';
 import { Pressable, ScrollView, View } from 'react-native';
 import { router } from 'expo-router';
 import { Button, Icon, Text, TextField } from '@/components/ui';
+import { isSampleClientName } from '@notion2/shared';
 import { useCreateClient } from '@/features/clients/api';
+import { openPaywall, useClientLimitReached } from '@/features/billing/api';
 import { CLIENT_COLORS } from '@/theme/tokens';
 import { z } from 'zod';
 
 export default function NewClient() {
   const create = useCreateClient();
+  const limitReached = useClientLimitReached();
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [color, setColor] = useState<string>(CLIENT_COLORS[0]);
@@ -15,6 +18,7 @@ export default function NewClient() {
 
   const save = () => {
     if (!name.trim()) return setError('Give the client a name.');
+    if (limitReached && !isSampleClientName(name.trim())) return openPaywall('clients');
     if (email.trim() && !z.email().safeParse(email.trim()).success)
       return setError('That email looks off.');
     const client = create({ name: name.trim(), email: email.trim() || null, color });

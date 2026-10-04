@@ -5,6 +5,7 @@ import type { DraftKind } from '@notion2/shared';
 import { Button, Skeleton, Text } from '@/components/ui';
 import { AiError, aiErrorMessage } from '@/features/ai/api';
 import { parseDraft, useDraftMessage } from '@/features/ai/drafts';
+import { openPaywall } from '@/features/billing/api';
 import { useClient, useUpdateClient } from '@/features/clients/api';
 import { useTrack } from '@/lib/analytics';
 import { haptics } from '@/lib/haptics';
@@ -100,7 +101,17 @@ export default function DraftScreen() {
       ) : state === 'error' ? (
         <View className="gap-3">
           <Text className="text-danger">{aiErrorMessage(errorCode)}</Text>
-          <Button label="Try again" variant="secondary" onPress={generate} />
+          {errorCode === 'plan_limit' ? (
+            <Button
+              testID="draft-upgrade"
+              label="See Pro"
+              icon="star"
+              variant="secondary"
+              onPress={() => openPaywall('ai')}
+            />
+          ) : (
+            <Button label="Try again" variant="secondary" onPress={generate} />
+          )}
         </View>
       ) : (
         <>

@@ -1,6 +1,7 @@
 import type { ModelCall, WorkspaceContext } from '../../../packages/shared/src/ai/index.ts';
 import { mockModel } from '../../../packages/shared/src/ai/index.ts';
 import { isValidTimeZone, todayInTimeZone } from '../../../packages/shared/src/dates/dates.ts';
+import { Usage, aiActionsLeft } from '../../../packages/shared/src/plans/plans.ts';
 import { createClaudeCall } from './claude.ts';
 import type { Db } from './supabase.ts';
 
@@ -27,6 +28,18 @@ export function modelCall(opts: { timeoutMs: number; maxRetries: number }): Mode
 }
 
 export { mockModel };
+
+/**
+ * Free plan: monthly AI action limit (see `workspace_usage()` in the Phase 4 migration).
+ * Fails open if usage can't be read, so a billing hiccup never blocks paying users.
+ */
+export async function overPlanLimit(db: Db, workspaceId: string): Promise<boolean> {
+  const { data, error } = await db.rpc('workspace_usage', { ws: workspaceId });
+  if (error || !data) return false;
+  const usage = Usage.safeParse(data);
+  if (!usage.success) return false;
+  return aiActionsLeft(usage.data) === 0;
+}
 
 /** Per-workspace hourly cap on AI actions. */
 export async function overRateLimit(db: Db, workspaceId: string): Promise<boolean> {

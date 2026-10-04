@@ -70,6 +70,7 @@ export function useStartTimer() {
         ended_at: null,
         minutes: null,
         billable: true,
+        invoice_id: null,
         created_at: now,
         updated_at: now,
       };
@@ -104,6 +105,7 @@ export function useAddManualEntry() {
         task_id: task.id,
         project_id: task.project_id,
         billable,
+        invoice_id: null,
         created_at: now,
         updated_at: now,
         ...manualFields(minutes),

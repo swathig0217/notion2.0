@@ -66,7 +66,9 @@ Before saying a task is done, run `pnpm typecheck && pnpm lint && pnpm test`. Al
 - Features live in `apps/mobile/src/features/<domain>/` (hooks + components). Routes in `app/` stay thin.
 - Data access goes through feature hooks (`useTasks`, `useCompleteTask`...), never raw Supabase calls inside components.
 - IDs are generated on the client (`crypto.randomUUID()`) so offline creates are stable.
-- Every mutation is optimistic: update the cache with `updateList`, then enqueue the write with `useDbWrite` (serial, persisted, idempotent). Rejections refetch and toast.
+- Every mutation is optimistic: update the cache with `updateList`, then enqueue the write with `useDbWrite` (serial, persisted, idempotent). Rejections refetch and toast. Multi-table writes go through an idempotent RPC queued with the `rpc` op (e.g. `save_invoice`).
+- Plan limits are enforced server-side (client-limit trigger, `overPlanLimit` in AI functions → 402 `plan_limit`); the app pre-checks and opens the paywall (`openPaywall`). Limits live in `plan_limits()` and `packages/shared/src/plans` (tested to match).
+- A new table must be added to `EXPORT_TABLES` (or `NOT_EXPORTED` with a reason) and to the inventory in `supabase/tests/phase4.test.sql`.
 - Styling uses NativeWind classes and theme tokens only. No hex values in components.
 - Use skeleton loaders on primary flows, not spinners. Every interactive element has an `accessibilityLabel` and supports dynamic type. Use `aria-checked`/`aria-selected`/`aria-disabled`, not `accessibilityState` (ignored on web).
 - SQL: every table has RLS enabled and its policies go through `is_workspace_member()` (exception: per-user tables like `push_tokens` use `user_id = auth.uid()`). Every migration that adds a table also adds pgTAP tests.

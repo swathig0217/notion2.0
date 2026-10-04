@@ -24,6 +24,8 @@ import { useTimeZone } from '@/features/auth/useMe';
 import { toast } from '@/lib/toast';
 import { confirmDestructive } from '@/lib/confirm';
 import { TimeTotal } from '@/features/time/TimeTotal';
+import { openPaywall, useClientLimitReached } from '@/features/billing/api';
+import { ClientInvoices } from '@/features/invoices/ClientInvoices';
 
 const STATUS_OPTIONS = [
   { value: 'active', label: 'Active' },
@@ -44,6 +46,7 @@ export default function ClientDetail() {
   const snooze = useSnoozeTask();
   const progress = useSubtaskProgress(tasks.data);
   const today = todayInTimeZone(useTimeZone());
+  const limitReached = useClientLimitReached();
 
   const clientProjects = useMemo(
     () => (projects.data ?? []).filter((p) => p.client_id === id && p.status !== 'archived'),
@@ -116,7 +119,12 @@ export default function ClientDetail() {
             label="Client status"
             value={client.status}
             options={STATUS_OPTIONS}
-            onChange={(status) => update(client.id, { status })}
+            onChange={(status) => {
+              // Re-activating counts toward the free plan's client limit.
+              if (status === 'active' && client.status !== 'active' && limitReached)
+                return openPaywall('clients');
+              update(client.id, { status });
+            }}
           />
           <TimeTotal clientId={client.id} />
           <Button
@@ -174,6 +182,8 @@ export default function ClientDetail() {
             ))}
           </View>
         )}
+
+        <ClientInvoices client={client} />
 
         <SectionHeader title="Open tasks" />
         <View className="gap-px bg-border">

@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Image, KeyboardAvoidingView, Platform, TextInput, View } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
-import { router } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import { useQueryClient } from '@tanstack/react-query';
 import { INBOX_MAX_CHARS, parseChecklist } from '@notion2/shared';
 import { Button, Icon, Text } from '@/components/ui';
@@ -18,6 +18,7 @@ import { useTrack } from '@/lib/analytics';
 import { haptics } from '@/lib/haptics';
 import { toast } from '@/lib/toast';
 import { useColors } from '@/theme/useColors';
+import { takePendingShare } from '@/features/share/pending';
 
 type Mode = 'text' | 'voice' | 'image';
 
@@ -36,11 +37,16 @@ const ALLOWED = new Set(['image/jpeg', 'image/png', 'image/webp']);
 export default function Capture() {
   const colors = useColors();
   const qc = useQueryClient();
-  const [mode, setMode] = useState<Mode>('text');
-  const [text, setText] = useState('');
+  const { shared } = useLocalSearchParams<{ shared?: string }>();
+  // Content shared from another app (OS share sheet) prefills the screen once.
+  const [initial] = useState(() => (shared ? takePendingShare() : null));
+  const [mode, setMode] = useState<Mode>(initial?.mode ?? 'text');
+  const [text, setText] = useState(initial?.text ?? '');
   const capture = useCaptureText();
   const captureImage = useCaptureImage();
-  const [image, setImage] = useState<PickedImage | null>(null);
+  const [image, setImage] = useState<PickedImage | null>(
+    initial?.mode === 'image' ? initial.image : null,
+  );
   const [uploading, setUploading] = useState(false);
 
   const pick = async (source: 'library' | 'camera') => {
