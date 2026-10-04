@@ -6,7 +6,7 @@ import {
   positionForMove,
   positionsAfter,
   rebalance,
-} from './position';
+} from './position.ts';
 
 describe('positionBetween', () => {
   it('starts an empty list at one step', () => {

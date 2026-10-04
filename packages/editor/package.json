@@ -1,0 +1,19 @@
+{
+  "name": "@notion2/editor",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "main": "src/index.ts",
+  "types": "src/index.ts",
+  "scripts": {
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@notion2/shared": "workspace:*",
+    "@tiptap/core": "^3.31.4",
+    "@tiptap/extension-list": "^3.31.4",
+    "@tiptap/extensions": "^3.31.4",
+    "@tiptap/pm": "^3.31.4",
+    "@tiptap/starter-kit": "^3.31.4"
+  }
+}

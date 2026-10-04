@@ -19,32 +19,32 @@ Read `PLAN.md` for the architecture and the current phase checklist. Read `DECIS
 
 ## Stack
 
-- pnpm workspaces: `apps/mobile` (Expo + React Native + Expo Router, TypeScript strict), `packages/shared` (Zod schemas, parsers, pure logic), `supabase/` (Postgres, RLS, Edge Functions in Deno), `evals/`
+- pnpm workspaces: `apps/mobile` (Expo SDK 57 + React Native + Expo Router, TypeScript strict; routes in `src/app`), `packages/shared` (Zod schemas, parsers, pure logic; also imported by Deno edge functions), `packages/editor` (TipTap schema, Smart Paste, Markdown), `supabase/` (Postgres, RLS, Edge Functions in Deno), `evals/` (Phase 2)
 - UI: NativeWind + our own components in `apps/mobile/src/components/ui`. Light and dark mode
 - Data: TanStack Query with a persisted cache, optimistic mutations, a queue for offline writes, last-write-wins on `updated_at`
-- Editor: TipTap (web) and TenTap (TipTap in a WebView, native). One shared extension set in `packages/shared/src/editor`
+- Editor: TipTap (web) and TenTap (TipTap in a WebView, native). One shared extension set in `packages/editor`
 - AI: Anthropic API **only** from Supabase Edge Functions. Model from `ANTHROPIC_MODEL`. Every AI output is validated with Zod
 - Tests: Vitest (logic + headless editor), pgTAP (RLS), Playwright (web e2e)
 
 ## Commands
 
-These are defined in Phase 1. Until a command exists in `package.json`, it is planned, not available.
+Run from the repo root. Local Supabase needs Docker.
 
-| Command | What it does |
-|---|---|
-| `pnpm install` | Install all workspaces |
-| `pnpm dev` | Start Expo (press `w` for web, `i` for iOS, `a` for Android) |
-| `pnpm dev:web` | Start Expo web only |
-| `pnpm db:start` / `pnpm db:stop` | Start or stop local Supabase (Docker) |
-| `pnpm db:reset` | Re-apply migrations and `seed.sql` locally |
-| `pnpm db:types` | Regenerate `packages/shared/src/db.types.ts` |
-| `pnpm typecheck` | `tsc --noEmit` across all workspaces |
-| `pnpm lint` | ESLint + Prettier check |
-| `pnpm format` | Prettier write |
-| `pnpm test` | Vitest across all workspaces |
-| `pnpm test:db` | pgTAP RLS tests (`supabase test db`) |
-| `pnpm test:e2e` | Playwright against Expo web + local Supabase |
-| `pnpm eval` | AI eval suite, which reports the pass rate (Phase 2) |
+| Command                          | What it does                                                 |
+| -------------------------------- | ------------------------------------------------------------ |
+| `pnpm install`                   | Install all workspaces                                       |
+| `pnpm dev`                       | Start Expo (press `w` for web, `i` for iOS, `a` for Android) |
+| `pnpm dev:web`                   | Start Expo web only                                          |
+| `pnpm db:start` / `pnpm db:stop` | Start or stop local Supabase (Docker)                        |
+| `pnpm db:reset`                  | Re-apply migrations and `seed.sql` locally                   |
+| `pnpm db:types`                  | Regenerate `packages/shared/src/db.types.ts`                 |
+| `pnpm typecheck`                 | `tsc --noEmit` across all workspaces                         |
+| `pnpm lint`                      | ESLint + Prettier check                                      |
+| `pnpm format`                    | Prettier write                                               |
+| `pnpm test`                      | Vitest across all workspaces                                 |
+| `pnpm test:db`                   | pgTAP RLS tests (`supabase test db`)                         |
+| `pnpm test:e2e`                  | Playwright against Expo web + local Supabase                 |
+| `pnpm eval`                      | AI eval suite, which reports the pass rate (Phase 2)         |
 
 Before saying a task is done, run `pnpm typecheck && pnpm lint && pnpm test`. Also run `pnpm test:db` when you touch migrations, and `pnpm test:e2e` when you touch a critical flow.
 
@@ -60,14 +60,14 @@ Before saying a task is done, run `pnpm typecheck && pnpm lint && pnpm test`. Al
 
 - TypeScript strict. No `any` (use `unknown` and narrow). No non-null `!` unless it carries a comment saying why.
 - Zod schemas in `packages/shared/src/schemas` are the source of truth for types that cross a boundary (client ↔ edge function ↔ AI). Infer TS types from them with `z.infer`.
-- `packages/shared` is runtime-agnostic: no Node, Deno, React, or React Native imports. Its only runtime dependency is `zod`.
+- `packages/shared` is runtime-agnostic: no Node, Deno, React, or React Native imports. Its only runtime dependency is `zod`. Relative imports use explicit `.ts` extensions (Deno needs them).
 - Files: `kebab-case.ts` for modules, `PascalCase.tsx` for components. Platform splits use `.web.tsx` / `.native.tsx`.
 - Features live in `apps/mobile/src/features/<domain>/` (hooks + components). Routes in `app/` stay thin.
 - Data access goes through feature hooks (`useTasks`, `useCompleteTask`...), never raw Supabase calls inside components.
 - IDs are generated on the client (`crypto.randomUUID()`) so offline creates are stable.
-- Every mutation is optimistic, with rollback and a user-visible error toast.
+- Every mutation is optimistic: update the cache with `updateList`, then enqueue the write with `useDbWrite` (serial, persisted, idempotent). Rejections refetch and toast.
 - Styling uses NativeWind classes and theme tokens only. No hex values in components.
-- Use skeleton loaders on primary flows, not spinners. Every interactive element has an `accessibilityLabel` and supports dynamic type.
+- Use skeleton loaders on primary flows, not spinners. Every interactive element has an `accessibilityLabel` and supports dynamic type. Use `aria-checked`/`aria-selected`/`aria-disabled`, not `accessibilityState` (ignored on web).
 - SQL: every table has RLS enabled and its policies go through `is_workspace_member()`. Every migration that adds a table also adds pgTAP tests.
 - Tests sit next to the code (`foo.test.ts`). Bug fixes start with a failing test.
 

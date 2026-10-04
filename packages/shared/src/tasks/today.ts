@@ -1,5 +1,5 @@
-import { daysBetween } from '../dates/dates';
-import type { TaskPriority, TaskStatus } from '../schemas/enums';
+import { daysBetween } from '../dates/dates.ts';
+import type { TaskPriority, TaskStatus } from '../schemas/enums.ts';
 
 export interface TodayTask {
   id: string;

@@ -298,6 +298,10 @@ begin
   insert into public.workspace_members (workspace_id, user_id, role)
   values (ws_id, new.id, 'owner');
 
+  -- Recorded server-side so the "signup -> first value" funnel never misses a start.
+  insert into public.events (workspace_id, user_id, name)
+  values (ws_id, new.id, 'signup_completed');
+
   return new;
 end;
 $$;

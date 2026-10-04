@@ -1,7 +1,7 @@
 -- RLS policy tests: user A must never read, write, update, or delete user B's data.
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(53);
+select plan(54);
 
 -- ---------------------------------------------------------------------------
 -- Helpers (session-scoped, rolled back with the transaction)
@@ -45,6 +45,10 @@ select is(
   (select role::text from public.workspace_members
     where user_id = 'aaaaaaaa-0000-4000-8000-000000000001'),
   'owner', 'signup makes the user the workspace owner');
+select is(
+  (select count(*)::int from public.events
+    where user_id = 'aaaaaaaa-0000-4000-8000-000000000001' and name = 'signup_completed'),
+  1, 'signup records a signup_completed event');
 
 -- B's data, created as admin.
 insert into public.clients (id, workspace_id, name) values
@@ -94,7 +98,8 @@ select is_empty($$ select 1 from public.notes $$, 'A cannot see B notes');
 select is_empty($$ select 1 from public.inbox_items $$, 'A cannot see B inbox items');
 select is((select count(*)::int from public.ai_actions), 1, 'A sees only their own ai_actions');
 select is_empty($$ select 1 from public.time_entries $$, 'A cannot see B time entries');
-select is_empty($$ select 1 from public.events $$, 'A cannot see B events');
+select is_empty($$ select 1 from public.events where user_id <> 'aaaaaaaa-0000-4000-8000-000000000001' $$,
+  'A cannot see B events');
 
 -- ---------------------------------------------------------------------------
 -- INSERT into B's workspace is rejected
@@ -180,7 +185,7 @@ select is((select type from public.ai_actions where id = 'bbbbbbbb-6666-4000-800
   'A cannot update or delete B ai_action');
 select is((select billable from public.time_entries where id = 'bbbbbbbb-7777-4000-8000-000000000001'), true,
   'A cannot update or delete B time entry');
-select is((select count(*)::int from public.events where user_id = 'bbbbbbbb-0000-4000-8000-000000000002'), 1,
+select is((select count(*)::int from public.events where user_id = 'bbbbbbbb-0000-4000-8000-000000000002'), 2,
   'A cannot delete B events');
 select is((select display_name from public.profiles where id = 'bbbbbbbb-0000-4000-8000-000000000002'), 'b',
   'A cannot update B profile');

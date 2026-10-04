@@ -1,6 +1,6 @@
 # PLAN.md — Notion 2.0 MVP
 
-Status: **Draft, waiting for approval.** No application code exists yet.
+Status: **Approved 2026-10-03. Phase 1 built, awaiting Phase 1 sign-off.** See §8 for checklist status.
 
 This file covers the architecture, the folder structure, the Phase 1 checklist, and the risks and open questions. Phases 2 to 4 are listed at a high level so Phase 1 is designed with them in mind. Each one gets a detailed checklist before it starts.
 
@@ -8,37 +8,38 @@ This file covers the architecture, the folder structure, the Phase 1 checklist, 
 
 ## 1. Final stack
 
-| Concern | Choice | Notes |
-|---|---|---|
-| Monorepo | pnpm workspaces | `apps/mobile`, `packages/shared`, `supabase/`, `evals/` |
-| Client | Expo (latest stable SDK at scaffold time), React Native, TypeScript strict, Expo Router | One codebase for iOS, Android, and web |
-| Styling | NativeWind + small custom component library | Tokens in one file, light and dark from day one |
-| Server state | TanStack Query v5 + `persistQueryClient` | Optimistic mutations; paused mutations persisted and resumed on reconnect |
-| Local persistence | AsyncStorage (native) / localStorage (web) | **Needs approval** (see §6). MMKV is faster but needs a dev client. Start with AsyncStorage and switch only if profiling says to |
-| Backend | Supabase: Postgres, Auth, Storage, RLS, Edge Functions (Deno) | Local dev through the Supabase CLI and Docker |
-| Auth | Supabase Auth: email magic link (Phase 1), then Apple and Google | Apple and Google need developer accounts and credentials (see §7) |
-| Validation | Zod, shared between client and edge functions | Lives in `packages/shared` |
-| AI | Anthropic API, called **only** from edge functions | `ANTHROPIC_MODEL` env var, default `claude-sonnet-5-5` |
-| Editor | **TipTap (ProseMirror) everywhere.** Web uses TipTap directly. Native uses TenTap (`@10play/tentap-editor`), which runs TipTap in a WebView | See §2 |
-| Gestures, haptics | `react-native-gesture-handler`, `react-native-reanimated`, `expo-haptics` | Part of the standard Expo/Expo Router setup |
-| Errors | Sentry (`@sentry/react-native`) | DSN from env; no user content in breadcrumbs |
-| Unit tests | Vitest | Shared logic, parsers, editor formatting (headless TipTap in jsdom) |
-| DB tests | pgTAP through `supabase test db` | RLS policy tests |
-| E2E | Playwright against Expo web + local Supabase | Magic links read from the local Supabase mail catcher |
-| Tooling | ESLint (flat config), Prettier, `tsc --noEmit`, GitHub Actions | CI runs typecheck, lint, unit, and DB tests |
+| Concern           | Choice                                                                                                                                      | Notes                                                                                                                            |
+| ----------------- | ------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
+| Monorepo          | pnpm workspaces                                                                                                                             | `apps/mobile`, `packages/shared`, `supabase/`, `evals/`                                                                          |
+| Client            | Expo (latest stable SDK at scaffold time), React Native, TypeScript strict, Expo Router                                                     | One codebase for iOS, Android, and web                                                                                           |
+| Styling           | NativeWind + small custom component library                                                                                                 | Tokens in one file, light and dark from day one                                                                                  |
+| Server state      | TanStack Query v5 + `persistQueryClient`                                                                                                    | Optimistic mutations; paused mutations persisted and resumed on reconnect                                                        |
+| Local persistence | AsyncStorage (native) / localStorage (web)                                                                                                  | **Needs approval** (see §6). MMKV is faster but needs a dev client. Start with AsyncStorage and switch only if profiling says to |
+| Backend           | Supabase: Postgres, Auth, Storage, RLS, Edge Functions (Deno)                                                                               | Local dev through the Supabase CLI and Docker                                                                                    |
+| Auth              | Supabase Auth: email magic link (Phase 1), then Apple and Google                                                                            | Apple and Google need developer accounts and credentials (see §7)                                                                |
+| Validation        | Zod, shared between client and edge functions                                                                                               | Lives in `packages/shared`                                                                                                       |
+| AI                | Anthropic API, called **only** from edge functions                                                                                          | `ANTHROPIC_MODEL` env var, default `claude-sonnet-5-5`                                                                           |
+| Editor            | **TipTap (ProseMirror) everywhere.** Web uses TipTap directly. Native uses TenTap (`@10play/tentap-editor`), which runs TipTap in a WebView | See §2                                                                                                                           |
+| Gestures, haptics | `react-native-gesture-handler`, `react-native-reanimated`, `expo-haptics`                                                                   | Part of the standard Expo/Expo Router setup                                                                                      |
+| Errors            | Sentry (`@sentry/react-native`)                                                                                                             | DSN from env; no user content in breadcrumbs                                                                                     |
+| Unit tests        | Vitest                                                                                                                                      | Shared logic, parsers, editor formatting (headless TipTap in jsdom)                                                              |
+| DB tests          | pgTAP through `supabase test db`                                                                                                            | RLS policy tests                                                                                                                 |
+| E2E               | Playwright against Expo web + local Supabase                                                                                                | Magic links read from the local Supabase mail catcher                                                                            |
+| Tooling           | ESLint (flat config), Prettier, `tsc --noEmit`, GitHub Actions                                                                              | CI runs typecheck, lint, unit, and DB tests                                                                                      |
 
 ## 2. Editor decision (the main risk)
 
 Principle 4 makes reliability the deciding factor. I looked at four options:
 
-| Option | Web | iOS/Android | Formatting test suite | Verdict |
-|---|---|---|---|---|
-| **A. TipTap on web + TenTap (TipTap in a WebView) on native** | Excellent; the de facto standard | Good. ProseMirror has years of hardening on mobile browsers. TenTap is maintained and used in production | **One engine, one schema, one suite.** Headless TipTap tests in Vitest cover all three platforms' logic | **Recommended** |
-| B. Native rich-text (e.g. `react-native-enriched`, `react-native-live-markdown`) | Separate implementation needed | Native feel, but these libraries are young; selection, IME, and paste edge cases are less proven | Two engines means two suites and drift between them | Too risky for "formatting bugs are release blockers" |
-| C. Markdown in a plain `TextInput` with a toolbar and live preview | Simple | The most robust input (it is a plain TextInput) | Easy to test | Weak WYSIWYG. Users see `**`, which reads as "not Notion" |
-| D. Lexical | Good | React Native support is immature | — | No |
+| Option                                                                           | Web                              | iOS/Android                                                                                              | Formatting test suite                                                                                   | Verdict                                                   |
+| -------------------------------------------------------------------------------- | -------------------------------- | -------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------- | --------------------------------------------------------- |
+| **A. TipTap on web + TenTap (TipTap in a WebView) on native**                    | Excellent; the de facto standard | Good. ProseMirror has years of hardening on mobile browsers. TenTap is maintained and used in production | **One engine, one schema, one suite.** Headless TipTap tests in Vitest cover all three platforms' logic | **Recommended**                                           |
+| B. Native rich-text (e.g. `react-native-enriched`, `react-native-live-markdown`) | Separate implementation needed   | Native feel, but these libraries are young; selection, IME, and paste edge cases are less proven         | Two engines means two suites and drift between them                                                     | Too risky for "formatting bugs are release blockers"      |
+| C. Markdown in a plain `TextInput` with a toolbar and live preview               | Simple                           | The most robust input (it is a plain TextInput)                                                          | Easy to test                                                                                            | Weak WYSIWYG. Users see `**`, which reads as "not Notion" |
+| D. Lexical                                                                       | Good                             | React Native support is immature                                                                         | —                                                                                                       | No                                                        |
 
 **Recommendation: Option A.**
+
 - Notes are stored as **ProseMirror JSON** (`notes.content jsonb`), plus a derived `content_text` column for AI context and search. Markdown export is generated from the JSON.
 - One extension set, defined once in `packages/shared/editor`: StarterKit (bold, italic, headings, lists, history), TaskList and TaskItem, Link, and a custom **SmartPaste** extension. Web and the native bundle both import it.
 - Native needs TenTap's "advanced setup" (a custom web bundle) so the SmartPaste extension and our styles run inside the WebView. It's a one-time build step.
@@ -48,22 +49,26 @@ Principle 4 makes reliability the deciding factor. I looked at four options:
 ## 3. Architecture
 
 ### Data and sync
+
 - **Client-generated UUIDs** (`crypto.randomUUID`) for every created row, so an item created offline already has its final ID and its children (subtasks) can reference it right away.
 - Every mutation is optimistic: update the cache, then queue the write. Paused mutations are persisted and replayed in order on reconnect.
 - **Last-write-wins** on `updated_at`, which a Postgres trigger sets. No CRDTs and no merge logic in the MVP.
 - Supabase types are generated into `packages/shared/src/db.types.ts` (`pnpm db:types`).
 
 ### Security
+
 - RLS on every table. One SQL helper, `is_workspace_member(workspace_id)`, backs every policy, so it is ready for teams through `workspace_members`.
 - An `auth.users` insert trigger creates the `profiles` row, a default `workspaces` row, and an owner `workspace_members` row.
 - Edge functions use the caller's JWT, so RLS applies. A service-role key is used only where it is required (account deletion), and only on the server.
 
 ### AI pattern: Propose, Review, Apply, Undo (built in Phase 2, schema ready in Phase 1)
+
 - `ai_actions.proposed_changes` holds the validated proposal. On accept, a Postgres function `apply_ai_action(action_id, selected_change_ids)` applies the changes **in one transaction** and writes `ai_actions.applied_changes` (the exact IDs it created).
 - `undo_ai_action(action_id)` deletes exactly those rows in one transaction.
 - The apply/undo logic is pure and lives in `packages/shared` (the diff from proposal to operations). It is unit-tested, and the SQL function executes it.
 
 ### Shared code across Node and Deno
+
 - `packages/shared` is plain TypeScript with no Node or Deno APIs. Its only runtime dependency is `zod`.
 - Edge functions import it through `supabase/functions/deno.json` (an import map: `"@shared/": "../../packages/shared/src/"`, `"zod": "npm:zod@..."`).
 - **Risk:** deploy-time bundling of paths outside `supabase/functions`. Phase 1 verifies this with a no-op function. The fallback is a `pnpm sync:shared` copy step.
@@ -74,7 +79,7 @@ Principle 4 makes reliability the deciding factor. I looked at four options:
 .
 ├─ apps/
 │  └─ mobile/                      # Expo app (iOS, Android, web)
-│     ├─ app/                      # Expo Router routes
+│     ├─ src/app/                  # Expo Router routes (SDK 57 convention: under src/)
 │     │  ├─ _layout.tsx            # providers: theme, query, auth, Sentry
 │     │  ├─ (auth)/                # welcome, sign-in, magic-link callback
 │     │  ├─ (onboarding)/          # Phase 2: 3 questions + generation
@@ -157,19 +162,21 @@ Expo-ecosystem packages that Expo Router and the brief already imply (`expo-hapt
 ## 7. Risks and ambiguities
 
 **Risks**
-1. **Native editor reliability (high).** Android IME and selection inside a WebView. *Mitigation:* a device spike before building features on it, and the Option C fallback described above.
-2. **Smart paste on native.** Intercepting paste inside the TenTap WebView requires the custom bundle and a bridge message. *Mitigation:* this is built and tested first in the editor slice.
+
+1. **Native editor reliability (high).** Android IME and selection inside a WebView. _Mitigation:_ a device spike before building features on it, and the Option C fallback described above.
+2. **Smart paste on native.** Intercepting paste inside the TenTap WebView requires the custom bundle and a bridge message. _Mitigation:_ this is built and tested first in the editor slice.
 3. **Offline + LWW.** Two devices editing the same task offline: the last write wins silently. Acceptable for a single user in the MVP, and documented.
 4. **Sharing code between Deno and Node.** Covered in §3, with a fallback.
 5. **Cold start under 2s.** The editor loads lazily, Today renders from the persisted cache before the network returns, and Sentry is initialized without blocking.
 6. **Expo/NativeWind version compatibility.** Pin versions known to work together at scaffold time.
 
 **Ambiguities / open questions (please answer)**
+
 - **Q1. Editor.** Approve Option A (TipTap + TenTap) with the Option C fallback?
 - **Q2. Dependencies.** Approve the list in §6?
 - **Q3. Schema additions.** Approve the ➕ fields in §5 (especially `applied_changes`, `time_entries.workspace_id`, `profiles.timezone/tone`, and the `events` table)?
-- **Q4. Phase conflict.** The brief puts `invoices` and inbound email in Phase 3 (§5, §11) *and* lists invoicing and email forwarding under Phase 4 (§6). My proposal: inbound email in **Phase 3**, invoicing in **Phase 4**, with the invoice tables created in Phase 4's migration. OK?
-- **Q5. Checklists in notes vs tasks.** "Turn into checklist" inside a **task** creates subtasks (rows). Inside a **note** it creates an editor checklist that is *not* a set of tasks, so those items won't appear in Today. Is that right for the MVP, or should note checklists be promotable to tasks?
+- **Q4. Phase conflict.** The brief puts `invoices` and inbound email in Phase 3 (§5, §11) _and_ lists invoicing and email forwarding under Phase 4 (§6). My proposal: inbound email in **Phase 3**, invoicing in **Phase 4**, with the invoice tables created in Phase 4's migration. OK?
+- **Q5. Checklists in notes vs tasks.** "Turn into checklist" inside a **task** creates subtasks (rows). Inside a **note** it creates an editor checklist that is _not_ a set of tasks, so those items won't appear in Today. Is that right for the MVP, or should note checklists be promotable to tasks?
 - **Q6. Undo semantics.** If a user edits an AI-created task and then hits Undo on that proposal, my default is to still remove it, after a confirm that says "1 item was edited since". OK?
 - **Q7. Accounts and credentials.** Phase 1 runs entirely against **local** Supabase. Do you have, or want me to plan for, a hosted Supabase project, an Apple Developer account (Sign in with Apple), Google OAuth client IDs, and a Sentry DSN? Apple and Google sign-in stay wired but disabled until the credentials exist.
 
@@ -178,64 +185,73 @@ Expo-ecosystem packages that Expo Router and the brief already imply (`expo-hapt
 Each slice works end to end (UI, API/DB, tests) before the next one starts.
 
 **1.1 Repo and tooling**
-- [ ] pnpm workspace, `tsconfig.base.json` (strict), ESLint flat config, Prettier, `.editorconfig`
-- [ ] Expo app scaffold (TypeScript, Expo Router, web enabled), NativeWind configured
-- [ ] `packages/shared` with Vitest
-- [ ] `.env.example` (Supabase URL/anon key, Sentry DSN; server only: `ANTHROPIC_API_KEY`, `ANTHROPIC_MODEL`)
-- [ ] GitHub Actions: install, typecheck, lint, unit tests, `supabase start` + `supabase test db`
-- [ ] `DECISIONS.md`, `PRIVACY.md` (initial)
+
+- [x] pnpm workspace, `tsconfig.base.json` (strict), ESLint flat config, Prettier, `.editorconfig`
+- [x] Expo app scaffold (Expo SDK 57, TypeScript, Expo Router, web enabled), NativeWind configured
+- [x] `packages/shared` with Vitest (plus `packages/editor`, see DECISIONS)
+- [x] `.env.example` (Supabase URL/anon key, Sentry DSN; server only: `ANTHROPIC_API_KEY`, `ANTHROPIC_MODEL`)
+- [x] GitHub Actions: install, typecheck, lint, unit tests, `supabase start` + `supabase test db` + Playwright
+- [x] `DECISIONS.md`, `PRIVACY.md` (initial)
 
 **1.2 Database**
-- [ ] Migrations for every §5 table, enums, `updated_at` triggers, indexes
-- [ ] `is_workspace_member()` and RLS policies on every table
-- [ ] Signup trigger: profile + workspace + membership
-- [ ] `seed.sql`: two demo users, each with a workspace, clients, projects, tasks, and subtasks
-- [ ] pgTAP tests: user A cannot select, insert, update, or delete user B's rows in every table; anon has no access; the signup trigger works
-- [ ] Generated types into `packages/shared`; no-op edge function proves the shared-import strategy
+
+- [x] Migrations for every §5 table, enums, `updated_at` triggers, indexes
+- [x] `is_workspace_member()` and RLS policies on every table
+- [x] Signup trigger: profile + workspace + membership (+ `signup_completed` event)
+- [x] `seed.sql`: two demo users, each with a workspace, clients, projects, tasks, and subtasks
+- [x] pgTAP tests: user A cannot select, insert, update, or delete user B's rows in every table; anon has no access; the signup trigger works (54 assertions)
+- [x] Generated types into `packages/shared`; `health` edge function imports `@shared` via import map (resolution verified locally; deploy-time bundling still unverified, needs a hosted project)
 
 **1.3 Design system**
-- [ ] Tokens (one accent color, neutrals, semantic colors, spacing, radii, type scale), light and dark
-- [ ] Components: Text, Button, IconButton, TextField, ListRow, Checkbox, SwipeRow, Sheet, Skeleton, EmptyState, Toast (with Undo)
-- [ ] Dynamic type and accessibility labels on every interactive component
+
+- [x] Tokens (one accent color, neutrals, semantic colors, spacing, radii, type scale), light and dark
+- [x] Components: Text, Button, IconButton, TextField, ListRow, Checkbox, SwipeRow, Skeleton, EmptyState, Toast (with Undo). Sheets use Expo Router modal presentation instead of a custom component
+- [x] Dynamic type and accessibility labels on every interactive component
 
 **1.4 Auth + shell**
-- [ ] Welcome and magic-link sign-in, deep-link callback, session in SecureStore (native)
-- [ ] Route guards: unauthenticated users go to (auth)
-- [ ] Bottom tabs (Today, Inbox, Clients, Brief) and the floating capture button. In Phase 1, capture saves a `text` inbox item with no AI
-- [ ] Settings stub: sign out, timezone
+
+- [x] Welcome and magic-link sign-in (PKCE), deep-link callback; session in AsyncStorage (SecureStore's 2KB limit is too small, see DECISIONS)
+- [x] Route guards: unauthenticated users go to (auth)
+- [x] Bottom tabs (Today, Inbox, Clients, Brief) and the floating capture button. In Phase 1, capture saves a `text` inbox item with no AI
+- [x] Settings stub: sign out, timezone, delete account
 
 **1.5 Data layer**
-- [ ] Supabase client, TanStack Query with a persisted cache, NetInfo-driven `onlineManager`, persisted paused mutations
-- [ ] A `useOptimisticMutation` helper (cache update, rollback on error, toast)
-- [ ] Unit tests: rollback and offline queue replay order
 
-**1.6 Slice: Clients**: list, create (name only is required), detail page (projects, tasks, notes), edit, archive
+- [x] Supabase client, TanStack Query with a persisted cache, NetInfo-driven `onlineManager`, persisted paused mutations
+- [x] Optimistic write helper (`useDbWrite` + `updateList`): cache update, serial write queue, refetch-to-rollback on rejection, error toast
+- [x] Unit tests: rollback and offline queue replay order (incl. replay after app restart)
 
-**1.7 Slice: Projects**: create under a client, detail page with its task list, edit, status
+**1.6 Slice: Clients** ✅: list, create (name only is required), detail page (projects, tasks, notes), edit name, status/archive, delete, "contacted today". _Cut: editing email after creation._
+
+**1.7 Slice: Projects** ✅: create under a client, detail page with its task list, edit, status, delete. _Cut: project due date editing._
 
 **1.8 Slice: Tasks**
-- [ ] Create (quick add), detail (title, notes, due date, priority, status), delete with an Undo toast
-- [ ] Subtasks/checklist: add, reorder, complete; bulk insert in one request
-- [ ] Optimistic complete with haptics; swipe to complete and swipe to snooze
-- [ ] Unit tests: position math and `completed_at` handling
 
-**1.9 Slice: Today**: overdue + due today grouped by client, "Needs follow-up" (clients past N days since `last_contacted_at`; N defaults to 7), swipe to complete, skeletons, empty state. Unit tests for timezone-correct day boundaries.
+- [x] Create (quick add), detail (title, notes, due date, priority, status), delete with an Undo toast
+- [x] Subtasks/checklist: add, complete, remove; bulk insert in one request. _Cut: drag-to-reorder UI (position math is built and tested)_
+- [x] Optimistic complete with haptics; swipe to complete and swipe to snooze (with Undo)
+- [x] Unit tests: position math; `completed_at` consistency enforced by a DB trigger and covered in pgTAP
+
+**1.9 Slice: Today** ✅: overdue + due today grouped by client, "Needs follow-up" (clients past N days since `last_contacted_at`; N defaults to 7), swipe to complete, skeletons, empty state. Unit tests for timezone-correct day boundaries.
 
 **1.10 Slice: Editor**
-- [ ] (a) **Device spike**: TenTap on an iOS and an Android device; go or fallback decision recorded in `DECISIONS.md`
-- [ ] Shared extension set; web and native editors; toolbar (B, I, H1/H2, bullets, checklist, link)
-- [ ] Autosave (debounced), with `content_text` derived on save
-- [ ] **Formatting suite (Vitest, headless TipTap):** bold/italic on a selected paragraph, toggle off, mixed marks, headings, nested bullet and ordered lists (indent/outdent), task list toggle, links (add/edit/remove), undo/redo across each operation, paste fixtures (Gmail HTML, Google Docs HTML, Notion HTML, plain text, web page), round trip JSON → markdown
+
+- [ ] (a) **Device spike**: TenTap on an iOS and an Android device; go or fallback decision recorded in `DECISIONS.md`. **Not done: needs a physical device or simulator (not available in the cloud container).**
+- [x] Shared extension set; web and native editors; toolbar (B, I, H1/H2, bullets, checklist, link, undo/redo; indent/outdent on native)
+- [x] Autosave (debounced 600ms, flushed on leave), with `content_text` derived on save (Markdown)
+- [x] **Formatting suite (Vitest, headless TipTap, 42 cases):** bold/italic on a selected paragraph, toggle off, mixed marks, headings, nested bullet and ordered lists (indent/outdent), task list toggle, links (add/edit/remove), undo/redo across each operation, paste fixtures (Gmail HTML, Google Docs HTML, Notion HTML, plain text, web page), round trip JSON → markdown
 
 **1.11 Slice: Smart Paste to Checklist (no AI)**
-- [ ] Parser in `packages/shared/paste`: splits lines; strips bullets (`-`, `*`, `•`, `–`, `[ ]`, `[x]`, `1.`, `1)`, `a.`); keeps checked state; trims; drops empties; collapses wrapped lines; caps at 200 items
-- [ ] 30+ unit test cases, including the edge cases that should *not* trigger (a single line, prose paragraphs)
-- [ ] UI: pasting 2+ lines into a task's title or notes, or into the editor, shows the "Turn into checklist (N items)" chip. One tap creates the subtasks or the editor task list. Works offline
+
+- [x] Parser in `packages/shared/paste`: splits lines; strips bullets (`-`, `*`, `•`, `–`, `[ ]`, `[x]`, `1.`, `1)`, `a.`); keeps checked state; trims; drops empties; collapses wrapped lines; caps at 200 items
+- [x] 30+ unit test cases, including the edge cases that should _not_ trigger (a single line, prose paragraphs)
+- [x] UI: pasting 2+ lines into a task's title or notes, or into the editor, shows the "Turn into checklist (N items)" chip. One tap creates the subtasks or the editor task list. Works offline. Also in quick add (creates N tasks) and the capture sheet
 
 **1.12 E2E + wrap-up**
-- [ ] Playwright (web): sign up via magic link, create a client and a task, complete a task, paste to checklist
-- [ ] Sentry wired (no PII); `events` written for `signup`, `task_completed`, and `checklist_from_paste`
-- [ ] Typecheck, lint, and tests green; phase summary written
+
+- [x] Playwright (web): sign up via magic link, create a client and a task, complete a task, paste to checklist (5 specs)
+- [x] Sentry wired (no PII, native only for now); `events` written for `signup_completed`, `task_completed`, `checklist_from_paste` and more
+- [x] Typecheck, lint, and tests green; phase summary written
 
 ## 9. Later phases (outline only)
 

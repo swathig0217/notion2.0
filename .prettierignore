@@ -4,3 +4,5 @@ supabase/.temp
 apps/mobile/.expo
 apps/mobile/editor-web-bundle/dist
 supabase/**/*.sql
+apps/mobile/dist-e2e
+apps/mobile/test-results

@@ -7,7 +7,7 @@ import {
   TaskPriority,
   TaskSource,
   TaskStatus,
-} from './enums';
+} from './enums.ts';
 
 /** YYYY-MM-DD calendar date (no time, no timezone). */
 export const IsoDate = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Expected YYYY-MM-DD');

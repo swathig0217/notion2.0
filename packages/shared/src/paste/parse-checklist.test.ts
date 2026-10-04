@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { checklistOfferCount, parseChecklist } from './parse-checklist';
+import { checklistOfferCount, parseChecklist } from './parse-checklist.ts';
 
 const titles = (input: string) => parseChecklist(input).items.map((i) => i.title);
 

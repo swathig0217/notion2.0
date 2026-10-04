@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { buildToday, type TodayClient, type TodayTask } from './today';
+import { buildToday, type TodayClient, type TodayTask } from './today.ts';
 
 const today = '2026-10-03';
 const tz = 'America/New_York';

@@ -10,6 +10,8 @@ export default tseslint.config(
     ignores: [
       '**/node_modules/**',
       '**/dist/**',
+      '**/dist-e2e/**',
+      '**/test-results/**',
       '**/.expo/**',
       '**/web-build/**',
       'apps/mobile/editor-web-bundle/build/**',

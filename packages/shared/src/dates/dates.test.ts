@@ -10,7 +10,7 @@ import {
   nextWeekday,
   todayInTimeZone,
   weekday,
-} from './dates';
+} from './dates.ts';
 
 describe('todayInTimeZone', () => {
   // 2026-10-05T02:30Z is still Oct 4 in New York and already Oct 5 in Tokyo.
